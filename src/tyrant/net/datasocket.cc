@@ -730,18 +730,15 @@ void DataSocket::setHeartBeat(std::chrono::nanoseconds checkTime)
     {
         return;
     }
-    
-    if (mTimer.lock())
+
+    if (nullptr != mTimer.lock())
     {
         mTimer.lock()->cancel();
         mTimer.reset();
     }
 
     mCheckTime = checkTime;
-    if (mCheckTime != std::chrono::steady_clock::duration::zero())
-    {
-        startPingCheckTimer();
-    }
+    startPingCheckTimer();
 }
 
 void DataSocket::postDisConnect()

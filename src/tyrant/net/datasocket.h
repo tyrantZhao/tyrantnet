@@ -12,6 +12,7 @@
 #include <tyrant/common/noncopyable.h>
 #include <tyrant/net/any.h>
 #include <tyrant/net/noexcept.h>
+#include <tyrant/net/socket.h>
 
 #ifdef USE_OPENSSL
 
@@ -35,17 +36,17 @@ namespace tyrant
         class DataSocket final : public Channel, public NonCopyable
         {
         public:
-            typedef DataSocket*                                                         PTR;
+            typedef DataSocket*                                                             PTR;
 
-            typedef ::std::function<void(PTR)>                                            ENTER_CALLBACK;
-            typedef ::std::function<size_t(PTR, const char* buffer, size_t len)>          DATA_CALLBACK;
-            typedef ::std::function<void(PTR)>                                            DISCONNECT_CALLBACK;
-            typedef ::std::shared_ptr<std::function<void(void)>>                          PACKED_SENDED_CALLBACK;
+            typedef ::std::function<void(PTR)>                                              ENTER_CALLBACK;
+            typedef ::std::function<size_t(PTR, const char* buffer, size_t len)>            DATA_CALLBACK;
+            typedef ::std::function<void(PTR)>                                              DISCONNECT_CALLBACK;
+            typedef ::std::function<void(void)>                                             PACKED_SENDED_CALLBACK;
 
-            typedef ::std::shared_ptr<std::string>                                        PACKET_PTR;
+            typedef ::std::shared_ptr<std::string>                                          PACKET_PTR;
 
         public:
-            DataSocket(sock fd, size_t maxRecvBufferSize) TYRANT_NOEXCEPT;
+            DataSocket(TcpSocket::PTR socket, size_t maxRecvBufferSize) TYRANT_NOEXCEPT;
             ~DataSocket() TYRANT_NOEXCEPT;
 
             /* must called in network thread */
@@ -114,7 +115,7 @@ namespace tyrant
             bool                            mPostWriteCheck;
 #endif
 
-            sock                            mFD;
+            TcpSocket::PTR                  mSocket;
             bool                            mIsPostFinalClose;
 
             bool                            mCanWrite;

@@ -1,17 +1,17 @@
 #include <tyrant/net/tcpservice.h>
 
 #include <iostream>
+#include <stdexcept>
 
 #include <tyrant/net/socketlibfunction.h>
 #include <tyrant/net/eventloop.h>
-#include <tyrant/net/listenthread.h>
+#include <tyrant/net/noexcept.h>
 
-//default eventloop timeout milliseconds
+using namespace tyrant;
+using namespace tyrant::net;
+using namespace std::chrono;
+
 const static unsigned int sDefaultLoopTimeOutMS = 100;
-
-using namespace ::tyrant;
-using namespace ::tyrant::net;
-using namespace ::std::chrono;
 
 namespace tyrant
 {
@@ -24,33 +24,34 @@ namespace tyrant
                 uint16_t    loopIndex;
                 uint16_t    index;
                 uint32_t    iid;
-            }data;  
+            }data;
 
             TcpService::SESSION_TYPE id;
         };
 
-        class IOLoopData : public NonCopyable, public ::std::enable_shared_from_this<IOLoopData>
+        class IOLoopData : public tyrant::NonCopyable, public std::enable_shared_from_this<IOLoopData>
         {
         public:
-            typedef ::std::shared_ptr<IOLoopData> PTR;
+            typedef std::shared_ptr<IOLoopData> PTR;
 
         public:
-            static  PTR                     Create(EventLoop::PTR eventLoop, 
+            static  PTR                     Create(EventLoop::PTR eventLoop,
                                                    std::shared_ptr<std::thread> ioThread);
 
         public:
-            void                            send(TcpService::SESSION_TYPE id, 
-                                                 const DataSocket::PACKET_PTR& packet, 
+            void                            send(TcpService::SESSION_TYPE id,
+                                                 const DataSocket::PACKET_PTR& packet,
                                                  const DataSocket::PACKED_SENDED_CALLBACK& callback);
             const EventLoop::PTR&           getEventLoop() const;
 
-        protected:
-            explicit                        IOLoopData(EventLoop::PTR eventLoop,
-                                                       std::shared_ptr<std::thread> ioThread);
         private:
             TypeIDS<DataSocket::PTR>&       getDataSockets();
             std::shared_ptr<std::thread>&   getIOThread();
             int                             incID();
+
+        private:
+            explicit                        IOLoopData(EventLoop::PTR eventLoop,
+                                                       std::shared_ptr<std::thread> ioThread);
 
         private:
             const EventLoop::PTR            mEventLoop;
@@ -62,9 +63,9 @@ namespace tyrant
             friend class TcpService;
         };
 
-        void IOLoopDataSend(const std::shared_ptr<IOLoopData>& ioLoopData, 
-                            TcpService::SESSION_TYPE id, 
-                            const DataSocket::PACKET_PTR& packet, 
+        void IOLoopDataSend(const std::shared_ptr<IOLoopData>& ioLoopData,
+                            TcpService::SESSION_TYPE id,
+                            const DataSocket::PACKET_PTR& packet,
                             const DataSocket::PACKED_SENDED_CALLBACK& callback)
         {
             ioLoopData->send(id, packet, callback);
@@ -74,14 +75,14 @@ namespace tyrant
         {
             return ioLoopData->getEventLoop();
         }
-    } //net
-} // tyrant
+    }
+}
 
 TcpService::TcpService() TYRANT_NOEXCEPT
 {
-    static_assert(sizeof(SessionId) == sizeof(((SessionId*)nullptr)->id), 
+    static_assert(sizeof(SessionId) == sizeof(((SessionId*)nullptr)->id),
         "sizeof SessionId must equal int64_t");
-    mRunIOLoop = false;
+    mRunIOLoop = std::make_shared<bool>(false);
 }
 
 TcpService::~TcpService() TYRANT_NOEXCEPT
@@ -89,8 +90,8 @@ TcpService::~TcpService() TYRANT_NOEXCEPT
     stopWorkerThread();
 }
 
-void TcpService::send(SESSION_TYPE id, 
-    const DataSocket::PACKET_PTR& packet, 
+void TcpService::send(SESSION_TYPE id,
+    const DataSocket::PACKET_PTR& packet,
     const DataSocket::PACKED_SENDED_CALLBACK& callback) const
 {
     union  SessionId sid;
@@ -116,7 +117,7 @@ void TcpService::postDisConnect(SESSION_TYPE id) const
     });
 }
 
-void TcpService::setHeartBeat(SESSION_TYPE id, 
+void TcpService::setHeartBeat(SESSION_TYPE id,
     std::chrono::nanoseconds checktime)
 {
     postSessionAsyncProc(id, [checktime](DataSocket::PTR ds){
@@ -124,7 +125,7 @@ void TcpService::setHeartBeat(SESSION_TYPE id,
     });
 }
 
-void TcpService::postSessionAsyncProc(SESSION_TYPE id, 
+void TcpService::postSessionAsyncProc(SESSION_TYPE id,
     std::function<void(DataSocket::PTR)> callback) const
 {
     union  SessionId sid;
@@ -139,16 +140,16 @@ void TcpService::postSessionAsyncProc(SESSION_TYPE id,
     auto callbackCapture = std::move(callback);
     auto shared_this = shared_from_this();
     auto ioLoopDataCapture = std::move(ioLoopData);
-    eventLoop->pushAsyncProc([callbackCapture, 
-        sid, 
-        shared_this, 
+    eventLoop->pushAsyncProc([callbackCapture,
+        sid,
+        shared_this,
         ioLoopDataCapture](){
         DataSocket::PTR tmp = nullptr;
         if (callbackCapture != nullptr &&
             ioLoopDataCapture->getDataSockets().get(sid.data.index, tmp) &&
             tmp != nullptr)
         {
-            const auto ud = cast<SESSION_TYPE>(tmp->getUD());
+            const auto ud = tyrant::net::cast<SESSION_TYPE>(tmp->getUD());
             if (ud != nullptr && *ud == sid.id)
             {
                 callbackCapture(tmp);
@@ -162,14 +163,20 @@ void TcpService::stopWorkerThread()
     std::lock_guard<std::mutex> lck(mServiceGuard);
     std::lock_guard<std::mutex> lock(mIOLoopGuard);
 
-    mRunIOLoop = false;
+    *mRunIOLoop = false;
 
     for (const auto& v : mIOLoopDatas)
     {
         v->getEventLoop()->wakeup();
-        if (v->getIOThread()->joinable())
+        try
         {
-            v->getIOThread()->join();
+            if (v->getIOThread()->joinable())
+            {
+                v->getIOThread()->join();
+            }
+        }
+        catch (...)
+        {
         }
     }
     mIOLoopDatas.clear();
@@ -185,17 +192,17 @@ void TcpService::startWorkerThread(size_t threadNum, FRAME_CALLBACK callback)
         return;
     }
 
-    mRunIOLoop = true;
+    mRunIOLoop = std::make_shared<bool>(true);
 
     mIOLoopDatas.resize(threadNum);
     for (auto& v : mIOLoopDatas)
     {
         auto eventLoop = std::make_shared<EventLoop>();
-        auto shared_this = shared_from_this();
+        auto runIoLoop = mRunIOLoop;
         v = IOLoopData::Create(eventLoop, std::make_shared<std::thread>([callback,
-            shared_this,
+            runIoLoop,
             eventLoop]() {
-            while (shared_this->mRunIOLoop)
+            while (*runIoLoop)
             {
                 auto timeout = std::chrono::milliseconds(sDefaultLoopTimeOutMS);
                 if (!eventLoop->getTimerMgr()->isEmpty())
@@ -288,7 +295,7 @@ std::shared_ptr<IOLoopData> TcpService::getIOLoopDataBySocketID(SESSION_TYPE id)
     }
 }
 
-TcpService::SESSION_TYPE TcpService::MakeID(size_t loopIndex, 
+TcpService::SESSION_TYPE TcpService::MakeID(size_t loopIndex,
     const std::shared_ptr<IOLoopData>& loopData)
 {
     union SessionId sid;
@@ -301,7 +308,7 @@ TcpService::SESSION_TYPE TcpService::MakeID(size_t loopIndex,
 
 void TcpService::procDataSocketClose(DataSocket::PTR ds)
 {
-    auto ud = cast<SESSION_TYPE>(ds->getUD());
+    auto ud = tyrant::net::cast<SESSION_TYPE>(ds->getUD());
     if (ud != nullptr)
     {
         union SessionId sid;
@@ -312,10 +319,10 @@ void TcpService::procDataSocketClose(DataSocket::PTR ds)
     }
 }
 
-bool TcpService::helpAddChannel(DataSocket::PTR channel, 
-    const std::string& ip, 
-    const TcpService::ENTER_CALLBACK& enterCallback, 
-    const TcpService::DISCONNECT_CALLBACK& disConnectCallback, 
+bool TcpService::helpAddChannel(DataSocket::PTR channel,
+    const std::string& ip,
+    const TcpService::ENTER_CALLBACK& enterCallback,
+    const TcpService::DISCONNECT_CALLBACK& disConnectCallback,
     const TcpService::DATA_CALLBACK& dataCallback,
     bool forceSameThreadLoop)
 {
@@ -329,7 +336,7 @@ bool TcpService::helpAddChannel(DataSocket::PTR channel,
         {
             return false;
         }
-        
+
         if (forceSameThreadLoop)
         {
             bool find = false;
@@ -354,16 +361,15 @@ bool TcpService::helpAddChannel(DataSocket::PTR channel,
 
         ioLoopData = mIOLoopDatas[loopIndex];
     }
-    
 
     const auto& loop = ioLoopData->getEventLoop();
     auto loopDataCapture = std::move(ioLoopData);
     auto shared_this = shared_from_this();
-    channel->setEnterCallback([ip, 
-        loopIndex, 
-        enterCallback, 
-        disConnectCallback, 
-        dataCallback, 
+    channel->setEnterCallback([ip,
+        loopIndex,
+        enterCallback,
+        disConnectCallback,
+        dataCallback,
         shared_this,
         loopDataCapture](DataSocket::PTR dataSocket){
         auto id = shared_this->MakeID(loopIndex, loopDataCapture);
@@ -371,7 +377,7 @@ bool TcpService::helpAddChannel(DataSocket::PTR channel,
         sid.id = id;
         loopDataCapture->getDataSockets().set(dataSocket, sid.data.index);
         dataSocket->setUD(id);
-        dataSocket->setDataCallback([dataCallback, 
+        dataSocket->setDataCallback([dataCallback,
             id](DataSocket::PTR ds, const char* buffer, size_t len){
             return dataCallback(id, buffer, len);
         });
@@ -400,24 +406,54 @@ bool TcpService::helpAddChannel(DataSocket::PTR channel,
     return true;
 }
 
-bool TcpService::addDataSocket(sock fd,
-    const SSLHelper::PTR& sslHelper,
-    bool isUseSSL,
-    const TcpService::ENTER_CALLBACK& enterCallback,
-    const TcpService::DISCONNECT_CALLBACK& disConnectCallback,
-    const TcpService::DATA_CALLBACK& dataCallback,
-    size_t maxRecvBufferSize,
-    bool forceSameThreadLoop)
+struct tyrant::net::TcpService::AddSocketOption::Options
 {
-    std::string ip = base::GetIPOfSocket(fd);
-    DataSocket::PTR channel = new DataSocket(fd, maxRecvBufferSize);
-#ifdef USE_OPENSSL
-    if (isUseSSL)
+    Options()
     {
-        if (sslHelper != nullptr)
+        useSSL = false;
+        forceSameThreadLoop = false;
+        maxRecvBufferSize = 0;
+    }
+
+    TcpService::ENTER_CALLBACK      enterCallback;
+    TcpService::DISCONNECT_CALLBACK disConnectCallback;
+    TcpService::DATA_CALLBACK       dataCallback;
+
+    SSLHelper::PTR                  sslHelper;
+    bool                            useSSL;
+    bool                            forceSameThreadLoop;
+    size_t                          maxRecvBufferSize;
+};
+
+bool TcpService::_addDataSocket(TcpSocket::PTR socket,
+    const std::vector<AddSocketOption::AddSocketOptionFunc>& optionFuncs)
+{
+    struct TcpService::AddSocketOption::Options options;
+    for (const auto& v : optionFuncs)
+    {
+        if (v != nullptr)
         {
-            if (sslHelper->getOpenSSLCTX() == nullptr ||
-                !channel->initAcceptSSL(sslHelper->getOpenSSLCTX()))
+            v(options);
+        }
+    }
+
+    if (options.maxRecvBufferSize <= 0)
+    {
+        throw std::runtime_error("buffer size is zero");
+    }
+
+    const auto isServerSide = socket->isServerSide();
+    const std::string ip = socket->GetIP();
+
+    DataSocket::PTR channel = new DataSocket(std::move(socket), options.maxRecvBufferSize);
+#ifdef USE_OPENSSL
+    if (options.useSSL)
+    {
+        if (isServerSide)
+        {
+            if (options.sslHelper == nullptr ||
+                options.sslHelper->getOpenSSLCTX() == nullptr ||
+                !channel->initAcceptSSL(options.sslHelper->getOpenSSLCTX()))
             {
                 goto FAILED;
             }
@@ -431,18 +467,18 @@ bool TcpService::addDataSocket(sock fd,
         }
     }
 #else
-    if (isUseSSL)
+    if (options.useSSL)
     {
         goto FAILED;
     }
-#endif // USE_OPENSSL
+#endif
 
     if (helpAddChannel(channel,
         ip,
-        enterCallback,
-        disConnectCallback,
-        dataCallback,
-        forceSameThreadLoop))
+        options.enterCallback,
+        options.disConnectCallback,
+        options.dataCallback,
+        options.forceSameThreadLoop))
     {
         return true;
     }
@@ -453,10 +489,6 @@ FAILED:
         delete channel;
         channel = nullptr;
     }
-    else
-    {
-        base::SocketClose(fd);
-    }
 
     return false;
 }
@@ -466,11 +498,11 @@ IOLoopData::PTR IOLoopData::Create(EventLoop::PTR eventLoop, std::shared_ptr<std
     struct make_shared_enabler : public IOLoopData
     {
         make_shared_enabler(EventLoop::PTR eventLoop, std::shared_ptr<std::thread> ioThread) :
-            IOLoopData(::std::move(eventLoop), ::std::move(ioThread))
+            IOLoopData(std::move(eventLoop), std::move(ioThread))
         {}
     };
 
-    return ::std::make_shared<make_shared_enabler>(std::move(eventLoop), std::move(ioThread));
+    return std::make_shared<make_shared_enabler>(std::move(eventLoop), std::move(ioThread));
 }
 
 IOLoopData::IOLoopData(EventLoop::PTR eventLoop, std::shared_ptr<std::thread> ioThread)
@@ -482,7 +514,7 @@ const EventLoop::PTR& IOLoopData::getEventLoop() const
     return mEventLoop;
 }
 
-TypeIDS<DataSocket::PTR>& IOLoopData::getDataSockets()
+tyrant::TypeIDS<DataSocket::PTR>& IOLoopData::getDataSockets()
 {
     return mDataSockets;
 }
@@ -497,8 +529,8 @@ int IOLoopData::incID()
     return mNextId++;
 }
 
-void IOLoopData::send(TcpService::SESSION_TYPE id, 
-    const DataSocket::PACKET_PTR& packet, 
+void IOLoopData::send(TcpService::SESSION_TYPE id,
+    const DataSocket::PACKET_PTR& packet,
     const DataSocket::PACKED_SENDED_CALLBACK& callback)
 {
     union  SessionId sid;
@@ -510,7 +542,7 @@ void IOLoopData::send(TcpService::SESSION_TYPE id,
         if (mDataSockets.get(sid.data.index, tmp) &&
             tmp != nullptr)
         {
-            const auto ud = cast<TcpService::SESSION_TYPE>(tmp->getUD());
+            const auto ud = tyrant::net::cast<TcpService::SESSION_TYPE>(tmp->getUD());
             if (ud != nullptr && *ud == sid.id)
             {
                 tmp->sendInLoop(packet, callback);
@@ -522,15 +554,15 @@ void IOLoopData::send(TcpService::SESSION_TYPE id,
         auto packetCapture = packet;
         auto callbackCapture = callback;
         auto ioLoopDataCapture = shared_from_this();
-        mEventLoop->pushAsyncProc([packetCapture, 
-            callbackCapture, 
-            sid, 
+        mEventLoop->pushAsyncProc([packetCapture,
+            callbackCapture,
+            sid,
             ioLoopDataCapture](){
             DataSocket::PTR tmp = nullptr;
             if (ioLoopDataCapture->mDataSockets.get(sid.data.index, tmp) &&
                 tmp != nullptr)
             {
-                const auto ud = cast<TcpService::SESSION_TYPE>(tmp->getUD());
+                const auto ud = tyrant::net::cast<TcpService::SESSION_TYPE>(tmp->getUD());
                 if (ud != nullptr && *ud == sid.id)
                 {
                     tmp->sendInLoop(packetCapture, callbackCapture);
@@ -538,4 +570,54 @@ void IOLoopData::send(TcpService::SESSION_TYPE id,
             }
         });
     }
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithEnterCallback(TcpService::ENTER_CALLBACK callback)
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.enterCallback = callback;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithDisconnectCallback(TcpService::DISCONNECT_CALLBACK callback)
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.disConnectCallback = callback;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithDataCallback(TcpService::DATA_CALLBACK callback)
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.dataCallback = callback;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithClientSideSSL()
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.useSSL = true;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithServerSideSSL(SSLHelper::PTR sslHelper)
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.sslHelper = sslHelper;
+        option.useSSL = true;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithMaxRecvBufferSize(size_t size)
+{
+    return [=](TcpService::AddSocketOption::Options& option) {
+        option.maxRecvBufferSize = size;
+    };
+}
+
+TcpService::AddSocketOption::AddSocketOptionFunc TcpService::AddSocketOption::WithForceSameThreadLoop(bool same)
+{
+    return [=](AddSocketOption::Options& option) {
+        option.forceSameThreadLoop = same;
+    };
 }

@@ -7,6 +7,7 @@
 #include <tyrant/common/noncopyable.h>
 #include <tyrant/common/cppversion.h>
 #include <tyrant/net/any.h>
+#include <tyrant/net/socket.h>
 #include <tyrant/net/socketlibtypes.h>
 #include <tyrant/net/eventloop.h>
 #include <tyrant/net/noexcept.h>
@@ -27,7 +28,7 @@ namespace tyrant
         {
         public:
             typedef std::shared_ptr<AsyncConnector> PTR;
-            typedef std::function<void(sock)> COMPLETED_CALLBACK;
+            typedef std::function<void(TcpSocket::PTR)> COMPLETED_CALLBACK;
             typedef std::function<void()> FAILED_CALLBACK;
 
             void                startWorkerThread();

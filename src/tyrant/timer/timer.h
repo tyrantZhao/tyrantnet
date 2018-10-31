@@ -68,7 +68,7 @@ namespace tyrant
         bool                                    isEmpty() const;
         //最近定时器剩余时间，如果无定时器,返回0
         ::std::chrono::nanoseconds              nearLeftTime() const;
-        //晴空
+        //清空
         void                                    clear();
 
     private:

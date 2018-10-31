@@ -1,7 +1,7 @@
 #include <tyrant/net/wraptcpservice.h>
 
-using namespace ::tyrant;
-using namespace ::tyrant::net;
+using namespace tyrant;
+using namespace tyrant::net;
 
 TCPSession::TCPSession() TYRANT_NOEXCEPT
 {
@@ -23,10 +23,10 @@ const TyrantAny& TCPSession::getUD() const
 
 void TCPSession::setUD(TyrantAny ud)
 {
-    mUD = ::std::move(ud);
+    mUD = std::move(ud);
 }
 
-const ::std::string& TCPSession::getIP() const
+const std::string& TCPSession::getIP() const
 {
     return mIP;
 }
@@ -36,14 +36,14 @@ TcpService::SESSION_TYPE TCPSession::getSocketID() const
     return mSocketID;
 }
 
-void TCPSession::send(const char* buffer, 
-    size_t len, 
+void TCPSession::send(const char* buffer,
+    size_t len,
     const DataSocket::PACKED_SENDED_CALLBACK& callback) const
 {
     IOLoopDataSend(mIoLoopData, mSocketID, DataSocket::makePacket(buffer, len), callback);
 }
 
-void TCPSession::send(const DataSocket::PACKET_PTR& packet, 
+void TCPSession::send(const DataSocket::PACKET_PTR& packet,
     const DataSocket::PACKED_SENDED_CALLBACK& callback) const
 {
     IOLoopDataSend(mIoLoopData, mSocketID, packet, callback);
@@ -140,21 +140,79 @@ void WrapTcpService::startWorkThread(size_t threadNum, TcpService::FRAME_CALLBAC
     mTCPService->startWorkerThread(threadNum, callback);
 }
 
-void WrapTcpService::addSession(sock fd, 
-    const SESSION_ENTER_CALLBACK& userEnterCallback, 
-    bool isUseSSL,
-    const SSLHelper::PTR& sslHelper,
-    size_t maxRecvBufferSize, 
-    bool forceSameThreadLoop)
+struct tyrant::net::AddSessionOption::Options
 {
+    Options()
+    {
+        useSSL = false;
+        forceSameThreadLoop = false;
+        maxRecvBufferSize = 0;
+    }
+
+    TCPSession::SESSION_ENTER_CALLBACK  enterCallback;
+    SSLHelper::PTR                      sslHelper;
+    bool                                useSSL;
+    bool                                forceSameThreadLoop;
+    size_t                              maxRecvBufferSize;
+};
+
+AddSessionOption::AddSessionOptionFunc AddSessionOption::WithEnterCallback(TCPSession::SESSION_ENTER_CALLBACK callback)
+{
+    return [=](AddSessionOption::Options& option) {
+        option.enterCallback = callback;
+    };
+}
+
+AddSessionOption::AddSessionOptionFunc AddSessionOption::WithClientSideSSL()
+{
+    return [=](AddSessionOption::Options& option) {
+        option.useSSL = true;
+    };
+}
+
+AddSessionOption::AddSessionOptionFunc AddSessionOption::WithServerSideSSL(SSLHelper::PTR sslHelper)
+{
+    return [=](AddSessionOption::Options& option) {
+        option.sslHelper = sslHelper;
+        option.useSSL = true;
+    };
+}
+
+AddSessionOption::AddSessionOptionFunc AddSessionOption::WithMaxRecvBufferSize(size_t size)
+{
+    return [=](AddSessionOption::Options& option) {
+        option.maxRecvBufferSize = size;
+    };
+}
+
+AddSessionOption::AddSessionOptionFunc AddSessionOption::WithForceSameThreadLoop(bool same)
+{
+    return [=](AddSessionOption::Options& option) {
+        option.forceSameThreadLoop = same;
+    };
+}
+
+bool WrapTcpService::_addSession(TcpSocket::PTR socket,
+    const std::vector<AddSessionOption::AddSessionOptionFunc>& optionFuncs)
+{
+    struct AddSessionOption::Options options;
+    for (const auto& v : optionFuncs)
+    {
+        if (v != nullptr)
+        {
+            v(options);
+        }
+    }
+
     auto tmpSession = TCPSession::Create();
     tmpSession->setService(mTCPService);
 
+    auto userEnterCallback = options.enterCallback;
     auto sharedTCPService = mTCPService;
-    auto enterCallback = [sharedTCPService, 
-        tmpSession, 
-        userEnterCallback](TcpService::SESSION_TYPE id, 
-                            const std::string& ip) mutable {
+    auto enterCallback = [sharedTCPService,
+        tmpSession,
+        userEnterCallback](TcpService::SESSION_TYPE id,
+            const std::string& ip) mutable {
         tmpSession->setIOLoopData(sharedTCPService->getIOLoopDataBySocketID(id));
         tmpSession->setSocketID(id);
         tmpSession->setIP(ip);
@@ -172,8 +230,8 @@ void WrapTcpService::addSession(sock fd,
         }
     };
 
-    auto msgCallback = [tmpSession](TcpService::SESSION_TYPE id, 
-        const char* buffer, 
+    auto msgCallback = [tmpSession](TcpService::SESSION_TYPE id,
+        const char* buffer,
         size_t len) mutable {
         const auto& callback = tmpSession->getDataCallback();
         if (callback != nullptr)
@@ -186,12 +244,24 @@ void WrapTcpService::addSession(sock fd,
         }
     };
 
-    mTCPService->addDataSocket(fd, 
-        sslHelper,
-        isUseSSL,
-        enterCallback, 
-        closeCallback, 
-        msgCallback, 
-        maxRecvBufferSize, 
-        forceSameThreadLoop);
+    TcpService::AddSocketOption::AddSocketOptionFunc sslOption;
+    if (options.useSSL)
+    {
+        if (socket->isServerSide())
+        {
+            sslOption = TcpService::AddSocketOption::WithServerSideSSL(options.sslHelper);
+        }
+        else
+        {
+            sslOption = TcpService::AddSocketOption::WithClientSideSSL();
+        }
+    }
+
+    return mTCPService->addDataSocket(std::move(socket),
+        sslOption,
+        TcpService::AddSocketOption::WithEnterCallback(enterCallback),
+        TcpService::AddSocketOption::WithDisconnectCallback(closeCallback),
+        TcpService::AddSocketOption::WithDataCallback(msgCallback),
+        TcpService::AddSocketOption::WithMaxRecvBufferSize(options.maxRecvBufferSize),
+        TcpService::AddSocketOption::WithForceSameThreadLoop(options.forceSameThreadLoop));
 }

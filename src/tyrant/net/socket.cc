@@ -1,7 +1,7 @@
 #include <tyrant/net/socket.h>
 
-using namespace tyrantnet;
-using namespace tyrantnet::net;
+using namespace tyrant;
+using namespace tyrant::net;
 
 TcpSocket::PTR TcpSocket::Create(sock fd, bool serverSide)
 {

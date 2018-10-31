@@ -11,6 +11,7 @@
 #include <tyrant/common/typeids.h>
 #include <tyrant/net/noexcept.h>
 #include <tyrant/net/socketlibfunction.h>
+#include <tyrant/net/socket.h>
 
 namespace tyrant
 {
@@ -20,7 +21,7 @@ namespace tyrant
         {
         public:
             typedef std::shared_ptr<ListenThread>   PTR;
-            typedef std::function<void(sock fd)> ACCEPT_CALLBACK;
+            typedef std::function<void(TcpSocket::PTR)> ACCEPT_CALLBACK;
 
             void                                startListen(bool isIPV6, 
                                                             const std::string& ip,
@@ -33,14 +34,13 @@ namespace tyrant
             ListenThread() TYRANT_NOEXCEPT;
             virtual ~ListenThread() TYRANT_NOEXCEPT;
 
-            void                                runListen(sock fd);
+            void                                runListen();
 
         private:
-            ACCEPT_CALLBACK                     mAcceptCallback;
             bool                                mIsIPV6;
             std::string                         mIP;
             int                                 mPort;
-            bool                                mRunListen;
+            std::shared_ptr<bool>               mRunListen;
             std::shared_ptr<std::thread>        mListenThread;
             std::mutex                          mListenThreadGuard;
         };

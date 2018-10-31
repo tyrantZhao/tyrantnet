@@ -9,7 +9,7 @@
 #include <exception>
 #include <stdexcept>
 
-namespace tyrantnet
+namespace tyrant
 {
     namespace net
     {

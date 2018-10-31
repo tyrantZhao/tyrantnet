@@ -24,6 +24,8 @@ set(net_src_list
 	${PROJECT_SOURCE_DIR}/src/tyrant/net/tcpservice.cc
 	${PROJECT_SOURCE_DIR}/src/tyrant/net/wraptcpservice.cc
 	${PROJECT_SOURCE_DIR}/src/tyrant/net/sslhelper.cc
+	${PROJECT_SOURCE_DIR}/src/tyrant/net/socket.cc
+	${PROJECT_SOURCE_DIR}/src/tyrant/net/syncconnector.cc
 	)
 
 set(timer_src_list
@@ -36,6 +38,7 @@ set(common_src_list
 	${PROJECT_SOURCE_DIR}/src/tyrant/common/sha1.cc
 	${PROJECT_SOURCE_DIR}/src/tyrant/common/array.c
 	${PROJECT_SOURCE_DIR}/src/tyrant/common/buffer.c
+	${PROJECT_SOURCE_DIR}/src/tyrant/common/stack.c
 )
 
 set(http_src_list
@@ -48,9 +51,9 @@ include_directories("${PROJECT_SOURCE_DIR}/src/")
 if(WIN32)
 	add_library(tyrantnet ${net_src_list} ${timer_src_list} ${http_src_list} ${common_src_list})
 elseif(UNIX)
-  	add_library(tyrantnet SHARED ${net_src_list} ${timer_src_list} ${http_src_list} ${common_src_list})
-  	find_package(Threads REQUIRED)
-  	target_link_libraries(tyrantnet pthread)
+	add_library(tyrantnet SHARED ${net_src_list} ${timer_src_list} ${http_src_list} ${common_src_list})
+	find_package(Threads REQUIRED)
+	target_link_libraries(tyrantnet pthread)
 endif()
 
 install(TARGETS tyrantnet DESTINATION lib)

@@ -1,31 +1,57 @@
 #include <tyrant/net/listenthread.h>
 
-using namespace ::tyrant;
-using namespace ::tyrant::net;
+#include <cstdlib>
+#include <iostream>
+
+#include <tyrant/net/socketlibfunction.h>
+#include <tyrant/net/noexcept.h>
+#include <tyrant/net/socket.h>
+#include <tyrant/net/syncconnector.h>
+
+using namespace tyrant;
+using namespace tyrant::net;
 
 ListenThread::PTR ListenThread::Create()
 {
     struct make_shared_enabler : public ListenThread {};
-    return ::std::make_shared<make_shared_enabler>();
+    return std::make_shared<make_shared_enabler>();
 }
 
 ListenThread::ListenThread() TYRANT_NOEXCEPT
 {
     mIsIPV6 = false;
-    mAcceptCallback = nullptr;
     mPort = 0;
-    mRunListen = false;
+    mRunListen = std::make_shared<bool>(false);
 }
-
 ListenThread::~ListenThread() TYRANT_NOEXCEPT
 {
     stopListen();
 }
 
-void ListenThread::startListen(bool isIPV6, 
-    const std::string& ip,
-    int port,
-    ACCEPT_CALLBACK callback)
+static TcpSocket::PTR runOnceListen(const std::shared_ptr<ListenSocket>& listenSocket)
+{
+    try
+    {
+        auto clientSocket = listenSocket->Accept();
+        return clientSocket;
+    }
+    catch (const EintrError& e)
+    {
+        std::cerr << "accept eintr execption:" << e.what() << std::endl;
+    }
+    catch (const AcceptError& e)
+    {
+        std::cerr << "accept execption:" << e.what() << std::endl;
+    }
+    catch (...)
+    {
+        std::cerr << "accept unknow execption:" << std::endl;
+    }
+
+    return nullptr;
+}
+
+void ListenThread::startListen(bool isIPV6, const std::string& ip, int port, ACCEPT_CALLBACK callback)
 {
     std::lock_guard<std::mutex> lck(mListenThreadGuard);
 
@@ -38,23 +64,34 @@ void ListenThread::startListen(bool isIPV6,
         throw std::runtime_error("accept callback is nullptr");
     }
 
-    // TODO::socket leak
     sock fd = base::Listen(isIPV6, ip.c_str(), port, 512);
-    if (SOCKET_ERROR == fd)
+    if (fd == SOCKET_ERROR)
     {
-        throw std::runtime_error("listen error of:");
+        throw std::runtime_error("listen error of:" + sErrno);
     }
 
     mIsIPV6 = isIPV6;
-    mRunListen = true;
+    mRunListen = std::make_shared<bool>(true);
     mIP = ip;
     mPort = port;
-    mAcceptCallback = callback;
 
-    auto shared_this = shared_from_this();
-    mListenThread = std::make_shared<std::thread>([shared_this, fd]() {
-        shared_this->runListen(fd);
-        base::SocketClose(fd);
+    auto listenSocket = std::shared_ptr<ListenSocket>(ListenSocket::Create(fd));
+    auto isRunListen = mRunListen;
+
+    mListenThread = std::make_shared<std::thread>([isRunListen, listenSocket, callback]() mutable {
+        while (*isRunListen)
+        {
+            auto clientSocket = runOnceListen(listenSocket);
+            if (clientSocket == nullptr)
+            {
+                continue;
+            }
+
+            if (*isRunListen)
+            {
+                callback(std::move(clientSocket));
+            }
+        }
     });
 }
 
@@ -67,53 +104,22 @@ void ListenThread::stopListen()
         return;
     }
 
-    mRunListen = false;
-
-    sock tmp = base::Connect(mIsIPV6, mIP.c_str(), mPort);
-    base::SocketClose(tmp);
-    tmp = SOCKET_ERROR;
-
-    if (mListenThread->joinable())
+    *mRunListen = false;
+    auto selfIP = mIP;
+    if (selfIP == "0.0.0.0")
     {
-        mListenThread->join();
+        selfIP = "127.0.0.1";
     }
+    tyrant::net::SyncConnectSocket(selfIP, mPort, std::chrono::milliseconds(10000));
+
+    try
+    {
+        if (mListenThread->joinable())
+        {
+            mListenThread->join();
+        }
+    }
+    catch(...)
+    { }
     mListenThread = nullptr;
-}
-
-void ListenThread::runListen(sock fd)
-{
-    struct sockaddr_in socketaddress;
-    struct sockaddr_in6 ip6Addr;
-    socklen_t addrLen = sizeof(struct sockaddr);
-    sockaddr_in* pAddr = &socketaddress;
-
-    if (mIsIPV6)
-    {
-        addrLen = sizeof(ip6Addr);
-        pAddr = (sockaddr_in*)&ip6Addr;
-    }
-
-    for (; mRunListen;)
-    {
-        sock client_fd = SOCKET_ERROR;
-        while ((client_fd = base::Accept(fd, (struct sockaddr*)pAddr, &addrLen)) == SOCKET_ERROR)
-        {
-            if (EINTR == sErrno)
-            {
-                continue;
-            }
-        }
-
-        if (SOCKET_ERROR == client_fd)
-        {
-            continue;
-        }
-        if (!mRunListen)
-        {
-            base::SocketClose(client_fd);
-            continue;
-        }
-
-        mAcceptCallback(client_fd);
-    }
 }

@@ -16,13 +16,13 @@
 
 #include <tyrant/net/eventloop.h>
 #include <tyrant/net/datasocket.h>
-#include <brynet/timer/Timer.h>
+#include <tyrant/timer/timer.h>
 
-using namespace brynet;
-using namespace brynet::net;
+using namespace tyrant;
+using namespace tyrant::net;
 
-std::atomic_llong TotalRecvPacketNum = std::ATOMIC_VAR_INIT(0);
-std::atomic_llong TotalRecvSize = std::ATOMIC_VAR_INIT(0);
+std::atomic_llong TotalRecvPacketNum = ATOMIC_VAR_INIT(0);
+std::atomic_llong TotalRecvSize = ATOMIC_VAR_INIT(0);
 
 int main(int argc, char** argv)
 {
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
         clientEventLoop->loop(10);
         if ((std::chrono::steady_clock::now() - now) >= std::chrono::seconds(1))
         {
-            cout << "total recv:" << (TotalRecvSize / 1024) / 1024 << " M /s" << " , num " <<  TotalRecvPacketNum << endl;
+            std::cout << "total recv:" << (TotalRecvSize / 1024) / 1024 << " M /s" << " , num " <<  TotalRecvPacketNum << std::endl;
 
             now = std::chrono::steady_clock::now();
             TotalRecvSize = 0;

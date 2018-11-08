@@ -74,13 +74,13 @@ int main(int argc, char** argv)
     }
 
     int port = atoi(argv[1]);
-    brynet::net::base::InitSocket();
+    base::InitSocket();
 
     service = std::make_shared<WrapTcpService>();
     auto mainLoop = std::make_shared<EventLoop>();
-    auto listenThrean = ListenThread::Create();
+    auto listenThread = ListenThread::Create();
 
-    listenThrean->startListen(false, "127.0.0.1", port, [mainLoop, listenThrean](TcpSocket::PTR& socket) {
+    listenThread->startListen(false, "127.0.0.1", port, [mainLoop, listenThread](TcpSocket::PTR socket) {
         socket->SocketNodelay();
         socket->SetSendSize(32 * 1024);
         socket->SetRecvSize(32 * 1024);

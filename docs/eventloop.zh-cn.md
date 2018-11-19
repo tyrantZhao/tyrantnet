@@ -1,7 +1,7 @@
 # 概述
 `EventLoop`用于socket的读写检测,以及线程间通信.
 
-源码见：[eventLoop.h](https://github.com/tyrantZhao/tyrant/blob/master/src/tyrant/net/eventloop.h)，
+源码见：[eventLoop.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/eventloop.h)，
 `EventLoop`不是必须使用智能指针，可以使用值对象，当然它是禁止拷贝的。
 
 # 接口

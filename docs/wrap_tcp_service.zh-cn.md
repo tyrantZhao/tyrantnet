@@ -1,6 +1,6 @@
 # 概述
-` WrapTcpService`是对`TcpService`的封装，源代码见：[wraptcpservice.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/wraptcpservice.h)。</br>
-` 它提供一个额外的`TCPSession`类型作为网络会话对象，比起`TcpService`以`int64_t`作为会话ID功能更强大。</br>
+`WrapTcpService`是对`TcpService`的封装，源代码见：[wraptcpservice.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/wraptcpservice.h)。</br>
+它提供一个额外的`TCPSession`类型作为网络会话对象，比起`TcpService`以`int64_t`作为会话ID功能更强大。
 
 # WrapTcpService 接口
 
@@ -83,7 +83,7 @@ std::this_thread::sleep_for(2s);
 ```
 
 # 注意事项
-- `setUD`、`setDisConnectCallback`以及`setDataCallback`都不是线程安全的。</br>
-因此最好在`addSession`中的`SESSION_ENTER_CALLBACK`回调里统一设置，避免读写冲突。</br>
-同样，`getUD`也不是线程安全的，但这只表示它和`setUD`会有冲突，因此当你遵守前面的建议，那么你之后无论怎么调用`getUD`都不会有问题。</br>
-- 当你采用C++11时，`UD`的类型为`int64_t`，当采用`C++14`+的时候则为`std::any`。</br>
+- `setUD`、`setDisConnectCallback`以及`setDataCallback`都不是线程安全的。
+因此最好在`addSession`中的`SESSION_ENTER_CALLBACK`回调里统一设置，避免读写冲突。
+同样，`getUD`也不是线程安全的，但这只表示它和`setUD`会有冲突，因此当你遵守前面的建议，那么你之后无论怎么调用`getUD`都不会有问题。
+- 当你采用C++11时，`UD`的类型为`int64_t`，当采用`C++14`+的时候则为`std::any`。

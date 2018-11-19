@@ -1,5 +1,5 @@
 # 概述
-`AsyncConnector`是一个异步创建外部连接的类.源代码见:[connector.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/connector.h).
+`AsyncConnector`是一个异步创建外部连接的类.源代码见:[connector.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/connector.h)。
 
 # 接口
 
@@ -45,5 +45,5 @@ connector->stopWorkerThread();
 
 # 注意事项
 - 如果没有开启工作线程或者关闭了工作线程,那么 `asyncConnect` 接口中传入的两个回调均不会被执行,并会产生异常.
-  因此确保不要随意在服务工作时调用`stopWorkerThread`
+  因此确保不要随意在服务工作时调用`stopWorkerThread。</br>
 - 如果`asyncConnect` 接口中传入的两个回调均为nullptr,会产生异常

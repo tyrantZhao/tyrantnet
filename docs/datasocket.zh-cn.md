@@ -1,6 +1,6 @@
 # 概述
-`DataSocket`是`tyrant`里最基本最核心的网络会话对象,负责实际的I/O读写。
-源代码见:[datasocket.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/datasocket.h)
+`DataSocket`是`tyrantnet`里最基本最核心的网络会话对象,负责实际的I/O读写。</br>
+源代码见:[datasocket.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/datasocket.h)。
 
 # 接口
 - `DataSocket::DataSocket(TcpSocket::PTR socket, size_t maxRecvBufferSize)`
@@ -53,7 +53,7 @@
 
     (线程安全)设置应用层user data
 
-## 示例
+# 示例
 ```C++
 auto ev = std::make_shared<tyrant::net::EventLoop>();
 while(true)

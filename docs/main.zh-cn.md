@@ -12,7 +12,7 @@
   详情见[listen_thread](https://github.com/tyrantZhao/tyrantnet/blob/master/docs/listen_thread.zh-cn.md)和[connector](https://github.com/tyrantZhao/tyrantnet/blob/master/docs/connector.zh-cn.md)。
 
 ## 安全的Socket对象
-`tyrantnet`不对用户暴露原始的socket fd，而是提供`TcpSocket::PTR`，详见[Socket](https://github.com/tyrantZhao/tyrantnet/blob/master/docs/socket.zh-cn.md)
+`tyrantnet`不对用户暴露原始的socket fd，而是提供`TcpSocket::PTR`，详见[socket](https://github.com/tyrantZhao/tyrantnet/blob/master/docs/socket.zh-cn.md)
 
 ## 数据传输
 分别(可以)由以下几个方式进行提供数据读写

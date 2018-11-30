@@ -43,8 +43,8 @@ set(common_src_list
 
 set(http_src_list
 	${PROJECT_SOURCE_DIR}/src/tyrant/net/http/http_parser.c
-	${PROJECT_SOURCE_DIR}/src/tyrant/net/http/httpparser.cc
-	${PROJECT_SOURCE_DIR}/src/tyrant/net/http/httpservice.cc
+	${PROJECT_SOURCE_DIR}/src/tyrant/net/http/HttpParser.cc
+	${PROJECT_SOURCE_DIR}/src/tyrant/net/http/HttpService.cc
 	)
 
 include_directories("${PROJECT_SOURCE_DIR}/src/")

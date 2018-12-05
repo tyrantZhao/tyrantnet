@@ -18,6 +18,7 @@ A cross platform network library(support Windows and Linux), using c++11(use som
 * [pingpongserver](https://github.com/tyrantZhao/tyrantnet/blob/master/example/pingpongserver.cc)
 * [broadcastclient](https://github.com/tyrantZhao/tyrantnet/blob/master/example/broadcastclient.cc)
 * [broadcastserver](https://github.com/tyrantZhao/tyrantnet/blob/master/example/broadcastserver.cc)
+* [httpdownload](https://github.com/tyrantZhao/tyrantnet/blob/master/example/httpdownload.cc)
 * See more examples in [examples](https://github.com/tyrantZhao/tyrantnet/tree/master/example)
 
 ## Compatibility

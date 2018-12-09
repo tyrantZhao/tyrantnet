@@ -1,5 +1,8 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.9)
 project(tyrantnet)
+
+option(TYRANTNET_BUILD_EXAMPLES "Build tyrantnet examples" ON)
+option(TYRANTNET_BUILD_TESTINGS "Build tyrantnet testings" OFF)
 
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
@@ -69,4 +72,14 @@ install (FILES ${TYRANT_COMMON_PUBLIC_HEADERS} DESTINATION "include/tyrant/commo
 
 file(GLOB TYRANT_HTTP_PUBLIC_HEADERS ${PROJECT_SOURCE_DIR}/src/tyrant/net/http/*.h)
 install (FILES ${TYRANT_HTTP_PUBLIC_HEADERS} DESTINATION "include/tyrant/net/http")
-add_subdirectory(example)
+
+if(TYRANTNET_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
+if(TYRANTNET_BUILD_TESTINGS)
+    add_subdirectory(tests)
+endif()
+
+
+

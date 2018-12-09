@@ -1,0 +1,10 @@
+enable_testing()
+
+add_executable(test_timer test_timer.cc)
+if (WIN32)
+    target_link_libraries(test_timer ws2_32 tyrantnet)
+elseif(UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(test_timer pthread tyrantnet)
+endif(WIN32)
+add_test(TestTimer test_timer)

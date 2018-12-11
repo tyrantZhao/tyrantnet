@@ -78,7 +78,15 @@ if(TYRANTNET_BUILD_EXAMPLES)
 endif()
 
 if(TYRANTNET_BUILD_TESTINGS)
-    add_subdirectory(tests)
+    if(WIN32)
+        if (MSVC_VERSION VERSION_GREATER 1910)
+            add_subdirectory(tests)
+        endif()
+    elseif(UNIX)
+        if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
+            add_subdirectory(tests)
+        endif()
+    endif()
 endif()
 
 

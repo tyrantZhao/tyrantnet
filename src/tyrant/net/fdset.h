@@ -1,5 +1,5 @@
-#ifndef __TYRANT_NET_FDSET_H__
-#define __TYRANT_NET_FDSET_H__
+#ifndef __TYRANTNET_NET_FDSET_H__
+#define __TYRANTNET_NET_FDSET_H__
 
 #include <stdbool.h>
 #include <tyrant/net/socketlibtypes.h>
@@ -31,4 +31,4 @@ bool ox_fdset_check(struct fdset_s* self, sock fd, enum CheckType type);
 }
 #endif
 
-#endif // __TYRANT_NET_FDSET_H__
+#endif //__TYRANTNET_NET_FDSET_H__

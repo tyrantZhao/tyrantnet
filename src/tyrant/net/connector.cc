@@ -14,102 +14,98 @@
 using namespace ::tyrant;
 using namespace ::tyrant::net;
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    class AsyncConnectAddr
     {
-        class AsyncConnectAddr
+    public:
+        AsyncConnectAddr(const std::string& ip,
+            int port,
+            std::chrono::nanoseconds timeout,
+            const AsyncConnector::COMPLETED_CALLBACK& successCB,
+            const AsyncConnector::FAILED_CALLBACK& failedCB) :
+            mIP(ip),
+            mPort(port),
+            mTimeout(timeout),
+            mSuccessCB(successCB),
+            mFailedCB(failedCB)
         {
-        public:
-            AsyncConnectAddr(const std::string& ip, 
-                int port, 
-                std::chrono::nanoseconds timeout, 
-                const AsyncConnector::COMPLETED_CALLBACK& successCB,
-                const AsyncConnector::FAILED_CALLBACK& failedCB) : 
-                mIP(ip),
-                mPort(port), 
-                mTimeout(timeout), 
-                mSuccessCB(successCB),
-                mFailedCB(failedCB)
+        }
+
+        const std::string&         getIP() const
+        {
+            return mIP;
+        }
+
+        int                         getPort() const
+        {
+            return mPort;
+        }
+
+        const AsyncConnector::COMPLETED_CALLBACK&   getSuccessCB() const
+        {
+            return mSuccessCB;
+        }
+
+        const AsyncConnector::FAILED_CALLBACK&  getFailedCB() const
+        {
+            return mFailedCB;
+        }
+
+        std::chrono::nanoseconds                getTimeout() const
+        {
+            return mTimeout;
+        }
+
+    private:
+        std::string                         mIP;
+        int                                 mPort;
+        std::chrono::nanoseconds            mTimeout;
+        AsyncConnector::COMPLETED_CALLBACK  mSuccessCB;
+        AsyncConnector::FAILED_CALLBACK     mFailedCB;
+    };
+
+    class ConnectorWorkInfo final : public NonCopyable
+    {
+    public:
+        typedef std::shared_ptr<ConnectorWorkInfo>    PTR;
+
+        ConnectorWorkInfo() TYRANT_NOEXCEPT;
+
+        void                checkConnectStatus(int millsecond);
+        bool                isConnectSuccess(sock clientfd) const;
+        void                checkTimeout();
+        void                processConnect(const AsyncConnectAddr&);
+        void                causeAllFailed();
+
+    private:
+
+        struct ConnectingInfo
+        {
+            ConnectingInfo()
             {
+                timeout = std::chrono::nanoseconds::zero();
             }
 
-            const std::string&         getIP() const
-            {
-                return mIP;
-            }
-
-            int                         getPort() const
-            {
-                return mPort;
-            }
-
-            const AsyncConnector::COMPLETED_CALLBACK&   getSuccessCB() const
-            {
-                return mSuccessCB;
-            }
-
-            const AsyncConnector::FAILED_CALLBACK&  getFailedCB() const
-            {
-                return mFailedCB;
-            }
-
-            std::chrono::nanoseconds                getTimeout() const
-            {
-                return mTimeout;
-            }
-
-        private:
-            std::string                         mIP;
-            int                                 mPort;
-            std::chrono::nanoseconds            mTimeout;
-            AsyncConnector::COMPLETED_CALLBACK  mSuccessCB;
-            AsyncConnector::FAILED_CALLBACK     mFailedCB;
+            std::chrono::steady_clock::time_point   startConnectTime;
+            std::chrono::nanoseconds                timeout;
+            AsyncConnector::COMPLETED_CALLBACK      successCB;
+            AsyncConnector::FAILED_CALLBACK         failedCB;
         };
 
-        class ConnectorWorkInfo final : public NonCopyable
+        std::map<sock, ConnectingInfo>  mConnectingInfos;
+        std::set<sock>                  mConnectingFds;
+
+        struct FDSetDeleter
         {
-        public:
-            typedef std::shared_ptr<ConnectorWorkInfo>    PTR;
-
-            ConnectorWorkInfo() TYRANT_NOEXCEPT;
-
-            void                checkConnectStatus(int millsecond);
-            bool                isConnectSuccess(sock clientfd) const;
-            void                checkTimeout();
-            void                processConnect(const AsyncConnectAddr&);
-            void                causeAllFailed();
-
-        private:
-
-            struct ConnectingInfo
+            void operator()(struct fdset_s* ptr) const
             {
-                ConnectingInfo()
-                {
-                    timeout = std::chrono::nanoseconds::zero();
-                }
-
-                std::chrono::steady_clock::time_point   startConnectTime;
-                std::chrono::nanoseconds                timeout;
-                AsyncConnector::COMPLETED_CALLBACK      successCB;
-                AsyncConnector::FAILED_CALLBACK         failedCB;
-            };
-
-            std::map<sock, ConnectingInfo>  mConnectingInfos;
-            std::set<sock>                  mConnectingFds;
-
-            struct FDSetDeleter
-            {
-                void operator()(struct fdset_s* ptr) const
-                {
-                    ox_fdset_delete(ptr);
-                }
-            };
-
-            std::unique_ptr<struct fdset_s, FDSetDeleter> mFDSet;
+                ox_fdset_delete(ptr);
+            }
         };
-    } // net
-} // tyrant
+
+        std::unique_ptr<struct fdset_s, FDSetDeleter> mFDSet;
+    };
+}}
 
 ConnectorWorkInfo::ConnectorWorkInfo() TYRANT_NOEXCEPT
 {

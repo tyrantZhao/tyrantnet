@@ -1,5 +1,5 @@
-#ifndef __NET_EVENTLOOP_H__
-#define __NET_EVENTLOOP_H__
+#ifndef __TYRANTNET_NET_EVENTLOOP_H__
+#define __TYRANTNET_NET_EVENTLOOP_H__
 
 #include <cstdint>
 #include <functional>
@@ -14,102 +14,98 @@
 #include <tyrant/net/socketlibfunction.h>
 #include <tyrant/timer/timer.h>
 
-namespace tyrant
-{
-    namespace net
-    {
-        class Channel;
-        class DataSocket;
-        class WakeupChannel;
+namespace tyrant { namespace net {
+    class Channel;
+    class DataSocket;
+    class WakeupChannel;
 
-        class EventLoop : public NonCopyable
-        {
-        public:
-            typedef ::std::shared_ptr<EventLoop>          PTR;
-            typedef ::std::function<void(void)>           USER_PROC;
+    class EventLoop : public NonCopyable
+    {
+    public:
+        typedef ::std::shared_ptr<EventLoop>          PTR;
+        typedef ::std::function<void(void)>           USER_PROC;
 
 #ifdef PLATFORM_WINDOWS
-            enum class OLV_VALUE
-            {
-                OVL_NONE = 0,
-                OVL_RECV,
-                OVL_SEND,
-            };
+        enum class OLV_VALUE
+        {
+            OVL_NONE = 0,
+            OVL_RECV,
+            OVL_SEND,
+        };
 
-            struct ovl_ext_s
-            {
-                OVERLAPPED  base;
-                const EventLoop::OLV_VALUE  OP;
+        struct ovl_ext_s
+        {
+            OVERLAPPED  base;
+            const EventLoop::OLV_VALUE  OP;
 
-                ovl_ext_s(OLV_VALUE op) : OP(op)
-                {
-                    memset(&base, 0, sizeof(base));
-                }
-            };
+            ovl_ext_s(OLV_VALUE op) : OP(op)
+            {
+                memset(&base, 0, sizeof(base));
+            }
+        };
 #endif
 
-        public:
-            EventLoop() TYRANT_NOEXCEPT;
-            virtual ~EventLoop() TYRANT_NOEXCEPT;
+    public:
+        EventLoop() TYRANT_NOEXCEPT;
+        virtual ~EventLoop() TYRANT_NOEXCEPT;
 
-            void                            loop(int64_t milliseconds);
-            bool                            wakeup();
+        void                            loop(int64_t milliseconds);
+        bool                            wakeup();
 
-            void                            pushAsyncProc(USER_PROC f);
-            void                            pushAfterLoopProc(USER_PROC f);
+        void                            pushAsyncProc(USER_PROC f);
+        void                            pushAfterLoopProc(USER_PROC f);
 
-            /* return nullptr if not called in net thread*/
-            TimerMgr::PTR                   getTimerMgr();
+        /* return nullptr if not called in net thread*/
+        TimerMgr::PTR                   getTimerMgr();
 
-            inline bool                     isInLoopThread() const
-            {
-                return mSelfThreadID == CurrentThread::tid();
-            }
+        inline bool                     isInLoopThread() const
+        {
+            return mSelfThreadID == CurrentThread::tid();
+        }
 
-        private:
-            void                            reallocEventSize(size_t size);
-            void                            processAfterLoopProcs();
-            void                            processAsyncProcs();
+    private:
+        void                            reallocEventSize(size_t size);
+        void                            processAfterLoopProcs();
+        void                            processAsyncProcs();
 
 #ifndef PLATFORM_WINDOWS
-            int                             getEpollHandle() const;
+        int                             getEpollHandle() const;
 #endif
-            bool                            linkChannel(sock fd, Channel* ptr);
-            void                            tryInitThreadID();
+        bool                            linkChannel(sock fd, Channel* ptr);
+        void                            tryInitThreadID();
 
-        private:
+    private:
 
 #ifdef PLATFORM_WINDOWS
-            OVERLAPPED_ENTRY*               mEventEntries;
+        OVERLAPPED_ENTRY*               mEventEntries;
 
-            typedef BOOL(WINAPI *sGetQueuedCompletionStatusEx) (HANDLE, LPOVERLAPPED_ENTRY, ULONG, PULONG, DWORD, BOOL);
-            sGetQueuedCompletionStatusEx    mPGetQueuedCompletionStatusEx;
-            HANDLE                          mIOCP;
+        typedef BOOL(WINAPI *sGetQueuedCompletionStatusEx) (HANDLE, LPOVERLAPPED_ENTRY, ULONG, PULONG, DWORD, BOOL);
+        sGetQueuedCompletionStatusEx    mPGetQueuedCompletionStatusEx;
+        HANDLE                          mIOCP;
 #else
-            epoll_event*                     mEventEntries;
-            int                              mEpollFd;
+        epoll_event*                     mEventEntries;
+        int                              mEpollFd;
 #endif
-            size_t                           mEventEntriesNum;
-            ::std::unique_ptr<WakeupChannel> mWakeupChannel;
+        size_t                           mEventEntriesNum;
+        ::std::unique_ptr<WakeupChannel> mWakeupChannel;
 
-            ::std::atomic_bool               mIsInBlock;
-            ::std::atomic_bool               mIsAlreadyPostWakeup;
+        ::std::atomic_bool               mIsInBlock;
+        ::std::atomic_bool               mIsAlreadyPostWakeup;
 
-            ::std::mutex                     mAsyncProcsMutex;
-            ::std::vector<USER_PROC>         mAsyncProcs;
-            ::std::vector<USER_PROC>         mCopyAsyncProcs;
+        ::std::mutex                     mAsyncProcsMutex;
+        ::std::vector<USER_PROC>         mAsyncProcs;
+        ::std::vector<USER_PROC>         mCopyAsyncProcs;
 
-            ::std::vector<USER_PROC>         mAfterLoopProcs;
-            ::std::vector<USER_PROC>         mCopyAfterLoopProcs;
+        ::std::vector<USER_PROC>         mAfterLoopProcs;
+        ::std::vector<USER_PROC>         mCopyAfterLoopProcs;
 
-            ::std::once_flag                 mOnceInitThreadID;
-            CurrentThread::THREAD_ID_TYPE    mSelfThreadID;
+        ::std::once_flag                 mOnceInitThreadID;
+        CurrentThread::THREAD_ID_TYPE    mSelfThreadID;
 
-            TimerMgr::PTR                   mTimer;
+        TimerMgr::PTR                   mTimer;
 
-            friend class DataSocket;
-        };
-    } // net
-} // tyrant
+        friend class DataSocket;
+    };
+}}
 
-#endif //eventloop.h
+#endif //__TYRANTNET_NET_EVENTLOOP_H__

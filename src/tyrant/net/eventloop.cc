@@ -8,91 +8,87 @@
 using namespace ::tyrant;
 using namespace ::tyrant::net;
 
-namespace tyrant
-{
-    namespace net
-    {
+namespace tyrant { namespace net {
 #ifdef PLATFORM_WINDOWS
-        class WakeupChannel final : public Channel, public NonCopyable
+    class WakeupChannel final : public Channel, public NonCopyable
+    {
+    public:
+        explicit WakeupChannel(HANDLE iocp) : mIOCP(iocp), mWakeupOvl(EventLoop::OLV_VALUE::OVL_RECV)
         {
-        public:
-            explicit WakeupChannel(HANDLE iocp) : mIOCP(iocp), mWakeupOvl(EventLoop::OLV_VALUE::OVL_RECV)
-            {
-            }
+        }
 
-            void    wakeup()
-            {
-                PostQueuedCompletionStatus(mIOCP, 0, (ULONG_PTR)this, (OVERLAPPED*)&mWakeupOvl);
-            }
+        void    wakeup()
+        {
+            PostQueuedCompletionStatus(mIOCP, 0, (ULONG_PTR)this, (OVERLAPPED*)&mWakeupOvl);
+        }
 
-        private:
-            void    canRecv() override
-            {
-            }
+    private:
+        void    canRecv() override
+        {
+        }
 
-            void    canSend() override
-            {
-            }
+        void    canSend() override
+        {
+        }
 
-            void    onClose() override
-            {
-            }
+        void    onClose() override
+        {
+        }
 
-        private:
-            HANDLE                  mIOCP;
-            EventLoop::ovl_ext_s    mWakeupOvl;
-        };
+    private:
+        HANDLE                  mIOCP;
+        EventLoop::ovl_ext_s    mWakeupOvl;
+    };
 #else
-        class WakeupChannel final : public Channel, public NonCopyable
+    class WakeupChannel final : public Channel, public NonCopyable
+    {
+    public:
+        explicit WakeupChannel(sock fd) : mFd(fd)
         {
-        public:
-            explicit WakeupChannel(sock fd) : mFd(fd)
-            {
-            }
+        }
 
-            void    wakeup()
+        void    wakeup()
+        {
+            uint64_t one = 1;
+            if (write(mFd, &one, sizeof one) <= 0)
             {
-                uint64_t one = 1;
-                if (write(mFd, &one, sizeof one) <= 0)
+                ::std::cerr << "wakeup failed" << std::endl;
+            }
+        }
+
+        ~WakeupChannel()
+        {
+            close(mFd);
+            mFd = SOCKET_ERROR;
+        }
+
+    private:
+        void    canRecv() override
+        {
+            char temp[1024 * 10];
+            while (true)
+            {
+                auto n = read(mFd, temp, sizeof(temp));
+                if (n == -1 || n < sizeof(temp))
                 {
-                    ::std::cerr << "wakeup failed" << std::endl;
+                    break;
                 }
             }
+        }
 
-            ~WakeupChannel()
-            {
-                close(mFd);
-                mFd = SOCKET_ERROR;
-            }
+        void    canSend() override
+        {
+        }
 
-        private:
-            void    canRecv() override
-            {
-                char temp[1024 * 10];
-                while (true)
-                {
-                    auto n = read(mFd, temp, sizeof(temp));
-                    if (n == -1 || n < sizeof(temp))
-                    {
-                        break;
-                    }
-                }
-            }
+        void    onClose() override
+        {
+        }
 
-            void    canSend() override
-            {
-            }
-
-            void    onClose() override
-            {
-            }
-
-        private:
-            sock    mFd;
-        };
+    private:
+        sock    mFd;
+    };
 #endif
-    } // net
-} // tyrant
+}}
 
 EventLoop::EventLoop()
 #ifdef PLATFORM_WINDOWS

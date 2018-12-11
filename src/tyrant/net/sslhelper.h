@@ -1,5 +1,5 @@
-#ifndef __NET_SSLhELPER_H__
-#define __NET_SSLhELPER_H__
+#ifndef __TYRANTNET__NET_SSLHELPER_H__
+#define __TYRANTNET__NET_SSLHELPER_H__
 
 #include <string>
 #include <memory>
@@ -20,33 +20,29 @@ extern "C" {
 
 #endif // USE_OPENSSL
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    class SSLHelper : public NonCopyable, public std::enable_shared_from_this<SSLHelper>
     {
-        class SSLHelper : public NonCopyable, public std::enable_shared_from_this<SSLHelper>
-        {
-        public:
-            typedef std::shared_ptr<SSLHelper>   PTR;
+    public:
+        typedef std::shared_ptr<SSLHelper>   PTR;
 
 #ifdef USE_OPENSSL
-            bool                                initSSL(const std::string& certificate, 
-                                                        const std::string& privatekey);
-            void                                destroySSL();
-            SSL_CTX*                            getOpenSSLCTX();
+        bool                                initSSL(const std::string& certificate,
+                                                    const std::string& privatekey);
+        void                                destroySSL();
+        SSL_CTX*                            getOpenSSLCTX();
 #endif //USE_OPENSSL
-            static  PTR                         Create();
+        static  PTR                         Create();
 
-        private:
-            SSLHelper() TYRANT_NOEXCEPT;
-            virtual ~SSLHelper() TYRANT_NOEXCEPT;
+    private:
+        SSLHelper() TYRANT_NOEXCEPT;
+        virtual ~SSLHelper() TYRANT_NOEXCEPT;
 
-        private:
+    private:
 #ifdef USE_OPENSSL
-            SSL_CTX*                            mOpenSSLCTX;
+        SSL_CTX*                            mOpenSSLCTX;
 #endif // USE_OPENSSL
-        };
-    }
-}
+    };
+}}
 
-#endif
+#endif //__TYRANTNET__NET_SSLHELPER_H__

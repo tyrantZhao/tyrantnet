@@ -1,5 +1,5 @@
-#ifndef __NET_PLATFORM_H__
-#define __NET_PLATFORM_H__
+#ifndef __TYRANTNET_NET_PLATFORM_H__
+#define __TYRANTNET_NET_PLATFORM_H__
 
 #if defined _MSC_VER || defined __MINGW32__
 #define PLATFORM_WINDOWS
@@ -7,4 +7,4 @@
 #define PLATFORM_LINUX
 #endif
 
-#endif //platform.h
+#endif //__TYRANTNET_NET_PLATFORM_H__

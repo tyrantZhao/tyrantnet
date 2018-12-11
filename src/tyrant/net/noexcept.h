@@ -1,5 +1,5 @@
-#ifndef __NET_NOEXCEPT_H__
-#define __NET_NOEXCEPT_H__
+#ifndef __TYRANTNET_NET_NOEXCEPT_H__
+#define __TYRANTNET_NET_NOEXCEPT_H__
 
 #include <tyrant/common/cppversion.h>
 
@@ -9,4 +9,4 @@
 #define TYRANT_NOEXCEPT
 #endif
 
-#endif //noexcept.h
+#endif //__TYRANTNET_NET_NOEXCEPT_H__

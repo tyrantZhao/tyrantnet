@@ -1,5 +1,5 @@
-#ifndef __NET_SOCKETLIBTYPES_H__
-#define __NET_SOCKETLIBTYPES_H__
+#ifndef __TYRANTNET_NET_SOCKETLIBTYPES_H__
+#define __TYRANTNET_NET_SOCKETLIBTYPES_H__
 
 #include <tyrant/net/platform.h>
 
@@ -52,4 +52,4 @@ typedef unsigned short int port;
 typedef unsigned long int ipaddress;
 #define IP_SIZE (20)
 
-#endif //socketlibtypes.h
+#endif //__TYRANTNET_NET_SOCKETLIBTYPES_H__

@@ -88,8 +88,8 @@ sock tyrant::net::base::Connect(bool isIPV6, const std::string& server_ip, int p
     InitSocket();
 
     clientfd = isIPV6 ?
-        SocketCreate(AF_INET6, SOCK_STREAM, 0) :
-        SocketCreate(AF_INET, SOCK_STREAM, 0);
+               SocketCreate(AF_INET6, SOCK_STREAM, 0) :
+               SocketCreate(AF_INET, SOCK_STREAM, 0);
 
     if (clientfd == SOCKET_ERROR)
     {
@@ -147,8 +147,8 @@ sock tyrant::net::base::Listen(bool isIPV6, const char* ip, int port, int back_n
     InitSocket();
 
     socketfd = isIPV6 ?
-        socket(AF_INET6, SOCK_STREAM, 0) :
-        socket(AF_INET, SOCK_STREAM, 0);
+               socket(AF_INET6, SOCK_STREAM, 0) :
+               socket(AF_INET, SOCK_STREAM, 0);
     if (socketfd == SOCKET_ERROR)
     {
         return SOCKET_ERROR;
@@ -175,10 +175,10 @@ sock tyrant::net::base::Listen(bool isIPV6, const char* ip, int port, int back_n
     const int reuseaddr_value = 1;
     if (!ptonResult ||
         setsockopt(socketfd,
-            SOL_SOCKET,
-            SO_REUSEADDR,
-            (const char *)&reuseaddr_value,
-            sizeof(int)) < 0)
+                   SOL_SOCKET,
+                   SO_REUSEADDR,
+                   (const char *)&reuseaddr_value,
+                   sizeof(int)) < 0)
     {
         SocketClose(socketfd);
         socketfd = SOCKET_ERROR;
@@ -211,16 +211,16 @@ static std::string get_ip_str(const struct sockaddr *sa)
     char tmp[INET6_ADDRSTRLEN];
     switch (sa->sa_family)
     {
-    case AF_INET:
-        inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
-            tmp, sizeof(tmp));
-        break;
-    case AF_INET6:
-        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
-            tmp, sizeof(tmp));
-        break;
-    default:
-        return "Unknown AF";
+        case AF_INET:
+            inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
+                      tmp, sizeof(tmp));
+            break;
+        case AF_INET6:
+            inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
+                      tmp, sizeof(tmp));
+            break;
+        default:
+            return "Unknown AF";
     }
 
     return tmp;

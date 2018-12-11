@@ -1,5 +1,5 @@
-#ifndef __NET_CONNECTOR_H__
-#define __NET_CONNECTOR_H__
+#ifndef __TYRANTNET_NET_CONNECTOR_H__
+#define __TYRANTNET_NET_CONNECTOR_H__
 
 #include <functional>
 #include <memory>
@@ -18,44 +18,40 @@
 #include <mutex>
 #endif
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    class ConnectorWorkInfo;
+
+    class AsyncConnector : NonCopyable, public std::enable_shared_from_this<AsyncConnector>
     {
-        class ConnectorWorkInfo;
+    public:
+        typedef std::shared_ptr<AsyncConnector> PTR;
+        typedef std::function<void(TcpSocket::PTR)> COMPLETED_CALLBACK;
+        typedef std::function<void()> FAILED_CALLBACK;
 
-        class AsyncConnector : NonCopyable, public std::enable_shared_from_this<AsyncConnector>
-        {
-        public:
-            typedef std::shared_ptr<AsyncConnector> PTR;
-            typedef std::function<void(TcpSocket::PTR)> COMPLETED_CALLBACK;
-            typedef std::function<void()> FAILED_CALLBACK;
+        void                startWorkerThread();
+        void                stopWorkerThread();
+        void                asyncConnect(const std::string& ip,
+                                         int port,
+                                         std::chrono::nanoseconds timeout,
+                                         COMPLETED_CALLBACK,
+                                         FAILED_CALLBACK);
 
-            void                startWorkerThread();
-            void                stopWorkerThread();
-            void                asyncConnect(const std::string& ip, 
-                                             int port, 
-                                             std::chrono::nanoseconds timeout,
-                                             COMPLETED_CALLBACK, 
-                                             FAILED_CALLBACK);
+        static  PTR         Create();
 
-            static  PTR         Create();
+    private:
+        AsyncConnector();
+        virtual ~AsyncConnector();
+        void                run();
 
-        private:
-            AsyncConnector();
-            virtual ~AsyncConnector();
-            void                run();
+    private:
+        ::std::shared_ptr<EventLoop>            mEventLoop;
 
-        private:
-            ::std::shared_ptr<EventLoop>      mEventLoop;
+        ::std::shared_ptr<ConnectorWorkInfo>    mWorkInfo;
+        ::std::shared_ptr<std::thread>          mThread;
+        ::std::mutex                            mThreadGuard;
 
-            ::std::shared_ptr<ConnectorWorkInfo> mWorkInfo;
-            ::std::shared_ptr<std::thread>    mThread;
-            ::std::mutex                      mThreadGuard;
+        bool                                    mIsRun;
+    };
+}}
 
-            bool                            mIsRun;
-        };
-    } // net
-} //tyrant
-
-#endif //connector.h
+#endif //__TYRANTNET_NET_CONNECTOR_H__

@@ -13,70 +13,66 @@ using namespace std::chrono;
 
 const static unsigned int sDefaultLoopTimeOutMS = 100;
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    union SessionId
     {
-        union SessionId
+        struct
         {
-            struct
-            {
-                uint16_t    loopIndex;
-                uint16_t    index;
-                uint32_t    iid;
-            }data;
+            uint16_t    loopIndex;
+            uint16_t    index;
+            uint32_t    iid;
+        }data;
 
-            TcpService::SESSION_TYPE id;
-        };
+        TcpService::SESSION_TYPE id;
+    };
 
-        class IOLoopData : public tyrant::NonCopyable, public std::enable_shared_from_this<IOLoopData>
-        {
-        public:
-            typedef std::shared_ptr<IOLoopData> PTR;
+    class IOLoopData : public tyrant::NonCopyable, public std::enable_shared_from_this<IOLoopData>
+    {
+    public:
+        typedef std::shared_ptr<IOLoopData> PTR;
 
-        public:
-            static  PTR                     Create(EventLoop::PTR eventLoop,
+    public:
+        static  PTR                     Create(EventLoop::PTR eventLoop,
+                                               std::shared_ptr<std::thread> ioThread);
+
+    public:
+        void                            send(TcpService::SESSION_TYPE id,
+                                             const DataSocket::PACKET_PTR& packet,
+                                             const DataSocket::PACKED_SENDED_CALLBACK& callback);
+        const EventLoop::PTR&           getEventLoop() const;
+
+    private:
+        TypeIDS<DataSocket::PTR>&       getDataSockets();
+        std::shared_ptr<std::thread>&   getIOThread();
+        int                             incID();
+
+    private:
+        explicit                        IOLoopData(EventLoop::PTR eventLoop,
                                                    std::shared_ptr<std::thread> ioThread);
 
-        public:
-            void                            send(TcpService::SESSION_TYPE id,
-                                                 const DataSocket::PACKET_PTR& packet,
-                                                 const DataSocket::PACKED_SENDED_CALLBACK& callback);
-            const EventLoop::PTR&           getEventLoop() const;
+    private:
+        const EventLoop::PTR            mEventLoop;
+        std::shared_ptr<std::thread>    mIOThread;
 
-        private:
-            TypeIDS<DataSocket::PTR>&       getDataSockets();
-            std::shared_ptr<std::thread>&   getIOThread();
-            int                             incID();
+        TypeIDS<DataSocket::PTR>        mDataSockets;
+        int                             mNextId;
 
-        private:
-            explicit                        IOLoopData(EventLoop::PTR eventLoop,
-                                                       std::shared_ptr<std::thread> ioThread);
+        friend class TcpService;
+    };
 
-        private:
-            const EventLoop::PTR            mEventLoop;
-            std::shared_ptr<std::thread>    mIOThread;
-
-            TypeIDS<DataSocket::PTR>        mDataSockets;
-            int                             mNextId;
-
-            friend class TcpService;
-        };
-
-        void IOLoopDataSend(const std::shared_ptr<IOLoopData>& ioLoopData,
-                            TcpService::SESSION_TYPE id,
-                            const DataSocket::PACKET_PTR& packet,
-                            const DataSocket::PACKED_SENDED_CALLBACK& callback)
-        {
-            ioLoopData->send(id, packet, callback);
-        }
-
-        const EventLoop::PTR& IOLoopDataGetEventLoop(const std::shared_ptr<IOLoopData>& ioLoopData)
-        {
-            return ioLoopData->getEventLoop();
-        }
+    void IOLoopDataSend(const std::shared_ptr<IOLoopData>& ioLoopData,
+                        TcpService::SESSION_TYPE id,
+                        const DataSocket::PACKET_PTR& packet,
+                        const DataSocket::PACKED_SENDED_CALLBACK& callback)
+    {
+        ioLoopData->send(id, packet, callback);
     }
-}
+
+    const EventLoop::PTR& IOLoopDataGetEventLoop(const std::shared_ptr<IOLoopData>& ioLoopData)
+    {
+        return ioLoopData->getEventLoop();
+    }
+}}
 
 TcpService::TcpService() TYRANT_NOEXCEPT
 {

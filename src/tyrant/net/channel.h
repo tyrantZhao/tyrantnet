@@ -1,25 +1,21 @@
-#ifndef __NET_CHANNEL_H__
-#define __NET_CHANNEL_H__
+#ifndef __TYRANTNET_NET_CHANNEL_H__
+#define __TYRANTNET_NET_CHANNEL_H__
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    class EventLoop;
+
+    class Channel
     {
-        class EventLoop;
+    public:
+        virtual ~Channel() = default;
 
-        class Channel
-        {
-        public:
-            virtual ~Channel() = default;
+    private:
+        virtual void    canSend() = 0;
+        virtual void    canRecv() = 0;
+        virtual void    onClose() = 0;
 
-        private:
-            virtual void    canSend() = 0;
-            virtual void    canRecv() = 0;
-            virtual void    onClose() = 0;
+        friend class EventLoop;
+    };
+}}
 
-            friend class EventLoop;
-        };
-    } // net
-} // tyrant
-
-#endif //channel.h
+#endif //__TYRANTNET_NET_CHANNEL_H__

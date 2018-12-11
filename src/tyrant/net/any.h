@@ -1,5 +1,5 @@
-#ifndef __NET_ANY_H__
-#define __NET_ANY_H__
+#ifndef __TYRANTNET_NET_ANY_H__
+#define __TYRANTNET_NET_ANY_H__
 
 #include <tyrant/common/cppversion.h>
 
@@ -9,27 +9,23 @@
 #include <cstdint>
 #endif
 
-namespace tyrant
-{
-    namespace net
+namespace tyrant { namespace net {
+    #ifdef HAVE_LANG_CXX17
+    typedef ::std::any TyrantAny;
+
+    template<typename T>
+    auto cast(const TyrantAny& ud)
     {
-#ifdef HAVE_LANG_CXX17
-        typedef ::std::any TyrantAny;
+        return std::any_cast<T>(&ud);
+    }
+    #else
+    typedef int64_t TyrantAny;
+    template<typename T>
+    const T* cast(const TyrantAny& ud)
+    {
+        return static_cast<const T*>(&ud);
+    }
+    #endif
+}}
 
-        template<typename T>
-        auto cast(const TyrantAny& ud)
-        {
-            return std::any_cast<T>(&ud);
-        }
-#else
-        typedef int64_t TyrantAny;
-        template<typename T>
-        const T* cast(const TyrantAny& ud)
-        {
-            return static_cast<const T*>(&ud);
-        }
-#endif
-    } // net
-} // tyrant
-
-#endif //any.h
+#endif //__TYRANTNET_NET_ANY_H__

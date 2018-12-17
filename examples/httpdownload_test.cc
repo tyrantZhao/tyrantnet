@@ -30,6 +30,7 @@ int main(int argc, char **argv)
                 httpSession->send(requestStr.c_str(), requestStr.size());
                 httpSession->setHttpCallback([](const HTTPParser& httpParser, const HttpSession::PTR& session) {
                     //http response handle
+                    std::cout << "get some content: " << std::ends;
                     std::cout << httpParser.getBody() << std::endl;
                 });
             });

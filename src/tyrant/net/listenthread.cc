@@ -6,7 +6,6 @@
 #include <tyrant/net/socketlibfunction.h>
 #include <tyrant/net/noexcept.h>
 #include <tyrant/net/socket.h>
-#include <tyrant/net/syncconnector.h>
 
 using namespace tyrant;
 using namespace tyrant::net;
@@ -110,7 +109,6 @@ void ListenThread::stopListen()
     {
         selfIP = "127.0.0.1";
     }
-    tyrant::net::SyncConnectSocket(selfIP, mPort, std::chrono::milliseconds(10000));
 
     try
     {

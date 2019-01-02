@@ -14,7 +14,7 @@
 #include <tyrant/net/socket.h>
 
 namespace tyrant { namespace net {
-    class ListenThread : public NonCopyable, public std::enable_shared_from_this<ListenThread>
+    class ListenThread : public common::NonCopyable, public std::enable_shared_from_this<ListenThread>
     {
     public:
         typedef std::shared_ptr<ListenThread>   PTR;

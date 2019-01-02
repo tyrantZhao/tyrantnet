@@ -19,6 +19,7 @@
 #include <tyrant/timer/timer.h>
 
 using namespace tyrant;
+using namespace tyrant::common;
 using namespace tyrant::net;
 
 std::atomic_llong TotalRecvPacketNum = ATOMIC_VAR_INIT(0);

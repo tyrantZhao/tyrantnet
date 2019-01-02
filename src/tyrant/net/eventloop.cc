@@ -10,7 +10,7 @@ using namespace ::tyrant::net;
 
 namespace tyrant { namespace net {
 #ifdef PLATFORM_WINDOWS
-    class WakeupChannel final : public Channel, public NonCopyable
+    class WakeupChannel final : public Channel, public common::NonCopyable
     {
     public:
         explicit WakeupChannel(HANDLE iocp) : mIOCP(iocp), mWakeupOvl(EventLoop::OLV_VALUE::OVL_RECV)
@@ -40,7 +40,7 @@ namespace tyrant { namespace net {
         EventLoop::ovl_ext_s    mWakeupOvl;
     };
 #else
-    class WakeupChannel final : public Channel, public NonCopyable
+    class WakeupChannel final : public Channel, public common::NonCopyable
     {
     public:
         explicit WakeupChannel(sock fd) : mFd(fd)

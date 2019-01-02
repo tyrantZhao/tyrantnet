@@ -13,7 +13,7 @@
 namespace tyrant { namespace net {
     class HttpService;
 
-    class HttpSession : public NonCopyable
+    class HttpSession : public common::NonCopyable
     {
     public:
         typedef std::shared_ptr<HttpSession>    PTR;

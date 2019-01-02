@@ -8,6 +8,7 @@
 #include <tyrant/net/socket.h>
 
 using namespace tyrant;
+using namespace tyrant::common;
 using namespace tyrant::net;
 
 ListenThread::PTR ListenThread::Create()

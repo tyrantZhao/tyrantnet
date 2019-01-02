@@ -1,8 +1,7 @@
 #ifndef __TYRANTNET_COMMON_NONCOPYABLE_H__
 #define __TYRANTNET_COMMON_NONCOPYABLE_H__
 
-namespace tyrant
-{
+namespace tyrant { namespace common {
     class NonCopyable
     {
     protected:
@@ -13,6 +12,6 @@ namespace tyrant
         NonCopyable(const NonCopyable&) = delete;
         const NonCopyable& operator=(const NonCopyable&) = delete;
     };
-}
+}}
 
 #endif //__TYRANTNET_COMMON_NONCOPYABLE_H__

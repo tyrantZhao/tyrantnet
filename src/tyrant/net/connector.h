@@ -21,7 +21,7 @@
 namespace tyrant { namespace net {
     class ConnectorWorkInfo;
 
-    class AsyncConnector : NonCopyable, public std::enable_shared_from_this<AsyncConnector>
+    class AsyncConnector : common::NonCopyable, public std::enable_shared_from_this<AsyncConnector>
     {
     public:
         typedef std::shared_ptr<AsyncConnector> PTR;

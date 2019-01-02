@@ -7,8 +7,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-namespace tyrant
-{
+namespace tyrant { namespace common {
     template<typename T>
     class TypeIDS
     {
@@ -86,6 +85,6 @@ namespace tyrant
         ::std::vector<T>      mValues;
         ::std::vector<size_t> mIds;
     };
-}
+}}
 
 #endif //__TYRANTNET_COMMON_TYPEIDS_H__

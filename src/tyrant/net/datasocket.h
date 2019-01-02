@@ -30,7 +30,7 @@ extern "C" {
 struct buffer_s;
 
 namespace tyrant { namespace net {
-    class DataSocket final : public Channel, public NonCopyable
+    class DataSocket final : public Channel, public common::NonCopyable
     {
     public:
         typedef DataSocket*                                                             PTR;

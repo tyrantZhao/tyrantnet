@@ -19,7 +19,7 @@ namespace tyrant { namespace net {
     class DataSocket;
     class WakeupChannel;
 
-    class EventLoop : public NonCopyable
+    class EventLoop : public common::NonCopyable
     {
     public:
         typedef ::std::shared_ptr<EventLoop>          PTR;

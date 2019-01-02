@@ -8,6 +8,7 @@
 #include <tyrant/net/noexcept.h>
 
 using namespace tyrant;
+using namespace tyrant::common;
 using namespace tyrant::net;
 using namespace std::chrono;
 
@@ -26,7 +27,7 @@ namespace tyrant { namespace net {
         TcpService::SESSION_TYPE id;
     };
 
-    class IOLoopData : public tyrant::NonCopyable, public std::enable_shared_from_this<IOLoopData>
+    class IOLoopData : public tyrant::common::NonCopyable, public std::enable_shared_from_this<IOLoopData>
     {
     public:
         typedef std::shared_ptr<IOLoopData> PTR;
@@ -510,7 +511,7 @@ const EventLoop::PTR& IOLoopData::getEventLoop() const
     return mEventLoop;
 }
 
-tyrant::TypeIDS<DataSocket::PTR>& IOLoopData::getDataSockets()
+TypeIDS<DataSocket::PTR>& IOLoopData::getDataSockets()
 {
     return mDataSockets;
 }

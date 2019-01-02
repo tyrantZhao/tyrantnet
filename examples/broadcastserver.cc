@@ -17,6 +17,7 @@
 #include <tyrant/net/eventloop.h>
 
 using namespace tyrant;
+using namespace tyrant::common;
 using namespace tyrant::net;
 
 std::atomic_llong TotalSendLen = ATOMIC_VAR_INIT(0);

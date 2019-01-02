@@ -4,13 +4,14 @@
 #include <condition_variable>
 #include <thread>
 
+#include <tyrant/common/packet.h>
 #include <tyrant/net/socketlibfunction.h>
 #include <tyrant/net/http/HttpService.h>
 #include <tyrant/net/http/HttpFormat.h>
 #include <tyrant/net/http/WebSocketFormat.h>
-#include <tyrant/common/packet.h>
 
 using namespace tyrant;
+using namespace tyrant::common;
 using namespace tyrant::net;
 
 std::atomic<int32_t> count;

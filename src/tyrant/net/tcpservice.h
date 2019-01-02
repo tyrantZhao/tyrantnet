@@ -19,7 +19,7 @@ namespace tyrant { namespace net {
     class EventLoop;
     class IOLoopData;
 
-    class TcpService : public NonCopyable, public std::enable_shared_from_this<TcpService>
+    class TcpService : public common::NonCopyable, public std::enable_shared_from_this<TcpService>
     {
     public:
         typedef std::shared_ptr<TcpService>                                         PTR;

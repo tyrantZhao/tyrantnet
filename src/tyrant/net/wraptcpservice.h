@@ -15,7 +15,7 @@ namespace tyrant { namespace net {
     class WrapTcpService;
     class IOLoopData;
 
-    class TCPSession : public NonCopyable
+    class TCPSession : public common::NonCopyable
     {
     public:
         typedef std::shared_ptr<TCPSession>     PTR;
@@ -90,7 +90,7 @@ namespace tyrant { namespace net {
         static AddSessionOptionFunc WithForceSameThreadLoop(bool same);
     };
 
-    class WrapTcpService : public NonCopyable
+    class WrapTcpService : public common::NonCopyable
     {
     public:
         typedef std::shared_ptr<WrapTcpService> PTR;

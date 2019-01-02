@@ -12,7 +12,7 @@
 namespace tyrant { namespace net {
     class DataSocket;
 
-    class TcpSocket : public NonCopyable
+    class TcpSocket : public common::NonCopyable
     {
     private:
         class TcpSocketDeleter
@@ -70,7 +70,7 @@ namespace tyrant { namespace net {
         int mErrorCode;
     };
 
-    class ListenSocket : public NonCopyable
+    class ListenSocket : public common::NonCopyable
     {
     private:
         class ListenSocketDeleter

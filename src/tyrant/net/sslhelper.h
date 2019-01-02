@@ -21,7 +21,7 @@ extern "C" {
 #endif // USE_OPENSSL
 
 namespace tyrant { namespace net {
-    class SSLHelper : public NonCopyable, public std::enable_shared_from_this<SSLHelper>
+    class SSLHelper : public common::NonCopyable, public std::enable_shared_from_this<SSLHelper>
     {
     public:
         typedef std::shared_ptr<SSLHelper>   PTR;

@@ -64,7 +64,7 @@ namespace tyrant { namespace net {
         AsyncConnector::FAILED_CALLBACK     mFailedCB;
     };
 
-    class ConnectorWorkInfo final : public NonCopyable
+    class ConnectorWorkInfo final : public common::NonCopyable
     {
     public:
         typedef std::shared_ptr<ConnectorWorkInfo>    PTR;

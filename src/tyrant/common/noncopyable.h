@@ -1,5 +1,5 @@
-#ifndef __COMMON_NONCOPYABLE_H_INCLUDED__
-#define __COMMON_NONCOPYABLE_H_INCLUDED__
+#ifndef __TYRANTNET_COMMON_NONCOPYABLE_H__
+#define __TYRANTNET_COMMON_NONCOPYABLE_H__
 
 namespace tyrant
 {
@@ -15,4 +15,4 @@ namespace tyrant
     };
 }
 
-#endif // noncopyable.h__
+#endif //__TYRANTNET_COMMON_NONCOPYABLE_H__

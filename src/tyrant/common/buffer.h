@@ -1,5 +1,5 @@
-#ifndef __COMMON_BUFFER_H_INCLUDED__
-#define __COMMON_BUFFER_H_INCLUDED__
+#ifndef __TYRANTNET_COMMON_BUFFER_H__
+#define __TYRANTNET_COMMON_BUFFER_H__
 
 #ifdef  __cplusplus
 extern "C" {
@@ -35,4 +35,4 @@ bool ox_buffer_write(struct buffer_s* self, const char* data, size_t len);
 }
 #endif
 
-#endif //__COMMON_BUFFER_H_INCLUDED__
+#endif //__TYRANTNET_COMMON_BUFFER_H__

@@ -1,5 +1,5 @@
-#ifndef _COMMON_BASE64_H_INCLUDED__
-#define _COMMON_BASE64_H_INCLUDED__
+#ifndef __TYRANTNET_COMMON_BASE64_H__
+#define __TYRANTNET_COMMON_BASE64_H__
 
 //base64编码支持
 #include <string>
@@ -11,4 +11,4 @@ bool is_base64(unsigned char c);
 //解码，从字符串到二进制
 ::std::string base64_decode(std::string const& s);
 
-#endif //_COMMON_BASE64_H_INCLUDED__
+#endif //__TYRANTNET_COMMON_BASE64_H__

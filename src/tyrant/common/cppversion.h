@@ -1,5 +1,5 @@
-#ifndef __COMMON_CPPVERSION_H__
-#define __COMMON_CPPVERSION_H__
+#ifndef __TYRANTNET_COMMON_CPPVERSION_H__
+#define __TYRANTNET_COMMON_CPPVERSION_H__
 
 #if (__cplusplus >= 201103L || \
      (defined(_MSC_VER) && _MSC_VER >= 1800))
@@ -16,4 +16,4 @@
 #define HAVE_LANG_CXX17 1
 #endif
 
-#endif //cppversion.h
+#endif //__TYRANTNET_COMMON_CPPVERSION_H__

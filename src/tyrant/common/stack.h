@@ -1,5 +1,5 @@
-#ifndef __TYRANT_COMMON_STACK_H__
-#define __TYRANT_COMMON_STACK_H__
+#ifndef __TYRANTNET_COMMON_STACK_H__
+#define __TYRANTNET_COMMON_STACK_H__
 
 #include <stdbool.h>
 
@@ -25,4 +25,4 @@ int ox_stack_num(struct stack_s* self);
 }
 #endif
 
-#endif // __TYRANT_COMMON_STACK_H__
+#endif //__TYRANTNET_COMMON_STACK_H__

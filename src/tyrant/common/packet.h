@@ -1,5 +1,5 @@
-#ifndef __TYRANT_COMMON_PACKET_H__
-#define __TYRANT_COMMON_PACKET_H__
+#ifndef __TYRANTNET_COMMON_PACKET_H__
+#define __TYRANTNET_COMMON_PACKET_H__
 
 #include <stdint.h>
 #include <assert.h>
@@ -282,7 +282,7 @@ public:
     }
 
 private:
-    // Œ™¡À±‹√‚÷±Ω”<<µº÷¬√ª”–‘Ω «◊÷Ω⁄–Úµº÷¬“˛≤ÿBUG,“ÚŒ™¥À∫Ø ˝…Ë÷√Œ™ÀΩ”–
+    // Œ™ÔøΩÀ±ÔøΩÔøΩÔøΩ÷±ÔøΩÔøΩ<<ÔøΩÔøΩÔøΩÔøΩ√ªÔøΩÔøΩ‘ΩÔøΩÔøΩÔøΩ÷ΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩBUG,ÔøΩÔøΩŒ™ÔøΩÀ∫ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩŒ™ÀΩÔøΩÔøΩ
     template<typename T>
     BasePacketWriter & operator << (const T& v)
     {
@@ -448,7 +448,7 @@ public:
     }
 
 private:
-    // Œ™¡À±‹√‚÷±Ω”read(uintXXX)µº÷¬√ª”–÷∏∂®◊÷Ω⁄–Ú‘Ï≥…“˛ªºBUG,“ÚŒ™¥À∫Ø ˝…Ë÷√Œ™ÀΩ”–
+    // Œ™ÔøΩÀ±ÔøΩÔøΩÔøΩ÷±ÔøΩÔøΩread(uintXXX)ÔøΩÔøΩÔøΩÔøΩ√ªÔøΩÔøΩ÷∏ÔøΩÔøΩÔøΩ÷ΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩBUG,ÔøΩÔøΩŒ™ÔøΩÀ∫ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩŒ™ÀΩÔøΩÔøΩ
     template<typename T>
     void            read(T& value)
     {
@@ -489,4 +489,4 @@ private:
 
 typedef AutoMallocPacket<32 * 1024>    BigPacket;
 
-#endif
+#endif //__TYRANTNET_COMMON_PACKET_H__

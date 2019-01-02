@@ -1,5 +1,5 @@
-#ifndef __COMMON_TYPEIDS_H_INCLUDE__
-#define __COMMON_TYPEIDS_H_INCLUDE__
+#ifndef __TYRANTNET_COMMON_TYPEIDS_H__
+#define __TYRANTNET_COMMON_TYPEIDS_H__
 
 #include <vector>
 #include <cassert>
@@ -88,4 +88,4 @@ namespace tyrant
     };
 }
 
-#endif //__COMMON_TYPEIDS_H_INCLUDE__
+#endif //__TYRANTNET_COMMON_TYPEIDS_H__

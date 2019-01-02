@@ -1,5 +1,5 @@
-#ifndef __COMMON_ARRAY_H_INCLUDED__
-#define __COMMON_ARRAY_H_INCLUDED__
+#ifndef __TYRANTNET_COMMON_ARRAY_H__
+#define __TYRANTNET_COMMON_ARRAY_H__
 
 /* 通用可拓展的数组 */
 #include <stdbool.h>
@@ -28,4 +28,4 @@ int ox_array_num(const struct array_s* self);
 }
 #endif
 
-#endif //__COMMON_ARRAY_H_INCLUDED__
+#endif //__TYRANTNET_COMMON_ARRAY_H__

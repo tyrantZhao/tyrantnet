@@ -1,7 +1,7 @@
+#include <tyrantnet/common/Buffer.h>
+
 #include <stdlib.h>
 #include <string.h>
-
-#include <tyrant/common/buffer.h>
 
 struct buffer_s
 {

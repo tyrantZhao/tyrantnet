@@ -1,7 +1,7 @@
 #ifndef __TYRANTNET_COMMON_NONCOPYABLE_H__
 #define __TYRANTNET_COMMON_NONCOPYABLE_H__
 
-namespace tyrant { namespace common {
+namespace tyrantnet { namespace common {
     class NonCopyable
     {
     protected:

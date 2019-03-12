@@ -1,5 +1,5 @@
-﻿#include "array.h"
-#include "stack.h"
+﻿#include "Array.h"
+#include "Stack.h"
 
 #include <string.h>
 #include <stdlib.h>

@@ -1,8 +1,8 @@
+#include <tyrantnet/common/Array.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-
-#include <tyrant/common/array.h>
 
 struct array_s
 {

@@ -6,7 +6,7 @@
  *
  ***********************************************************/
 
-#include <tyrant/common/md5calc.h>
+#include <tyrantnet/common/md5calc.h>
 
 #include <string.h>
 #include <stdio.h>

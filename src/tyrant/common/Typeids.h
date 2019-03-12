@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-namespace tyrant { namespace common {
+namespace tyrantnet { namespace common {
     template<typename T>
     class TypeIDS
     {

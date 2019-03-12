@@ -7,13 +7,13 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <tyrant/net/socketlibtypes.h>
+#include <tyrantnet/net/socketlibtypes.h>
 
 #ifndef PLATFORM_WINDOWS
 #include <endian.h>
 #endif
 
-namespace tyrant { namespace common {
+namespace tyrantnet { namespace common {
         namespace socketendian {
             inline uint64_t hl64ton(uint64_t host) {
                 uint64_t ret = 0;

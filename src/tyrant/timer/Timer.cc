@@ -1,4 +1,4 @@
-#include <tyrant/timer/timer.h>
+#include <tyrantnet/timer/Timer.h>
 
 namespace tyrant
 {

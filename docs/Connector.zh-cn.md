@@ -1,12 +1,12 @@
 # 概述
-`AsyncConnector`是一个异步创建外部连接的类.源代码见:[connector.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/connector.h)。
+`AsyncConnector`是一个异步创建外部连接的类.源代码见:[Connector.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrantnet/net/Connector.h)。
 
 # 接口
 
 - `AsyncConnector::Create`
     
 
-    必须(只能)使用此静态方法创建`AsyncConnector::PTR`智能指针对象,用于后续工作.
+    必须(只能)使用此静态方法创建`AsyncConnector::Ptr`智能指针对象,用于后续工作.
 
 - `AsyncConnector::startWorkerThread(void)`
     
@@ -29,7 +29,7 @@ connector->startWorkerThread();
 // set timeout is 1s
 connector->asyncConnect("127.0.0.1", 9999,
     std::chrono::seconds(1),
-    [](TcpSocket::PTR socket) {
+    [](TcpSocket::Ptr& socket) {
         std::cout << "connect success" << std::endl;
         // 在此我们就可以将 fd 用于网络库的其他部分,比如用于`TCPService`
     },

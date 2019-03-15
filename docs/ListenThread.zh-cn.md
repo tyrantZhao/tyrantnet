@@ -1,11 +1,11 @@
 # 概述
-`ListenThread `是一个用于接受外部连接的类.源代码见:[listenthread.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrant/net/listenthread.h).
+`ListenThread `是一个用于接受外部连接的类.源代码见:[ListenThread.h](https://github.com/tyrantZhao/tyrantnet/blob/master/src/tyrantnet/net/ListenThread.h).
 
 # 接口
 
 - `ListenThread::Create(void)`
 	
-	创建`ListenThread::PTR`智能指针对象，此对象用于后续工作.
+	创建`ListenThread::Ptr`智能指针对象，此对象用于后续工作.
 
 - `ListenThread::startThread(bool isIPV6, const std::string& ip, int port, CB cb)`
 	
@@ -23,7 +23,7 @@ auto listenThread = ListenThread::Create();
 listenThread->startThread(false,
 	"0.0.0.0",
 	9999,
-	[](TcpSocket::PTR socket) {
+	[](TcpSocket::Ptr& socket) {
 		std::cout << "accepted connection" << std::endl;
 		// 在此我们就可以将 socket 用于网络库的其他部分,比如用于`TCPService`
 	});

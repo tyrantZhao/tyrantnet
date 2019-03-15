@@ -1,12 +1,11 @@
 #include <iostream>
 #include <string>
 
-#include <tyrant/net/socketlibfunction.h>
-#include <tyrant/net/wraptcpservice.h>
-#include <tyrant/net/connector.h>
+#include <tyrantnet/net/SocketLibFunction.h>
+#include <tyrantnet/net/TCPService.h>
+#include <tyrantnet/net/Connector.h>
 
-using namespace tyrant;
-using namespace tyrant::net;
+using namespace tyrantnet::net;
 
 int main(int argc, char **argv)
 {
@@ -18,8 +17,8 @@ int main(int argc, char **argv)
 
     std::string tmp(atoi(argv[5]), 'a');
 
-    auto server = std::make_shared<WrapTcpService>();
-    server->startWorkThread(atoi(argv[3]));
+    auto server = TcpService::Create();
+    server->startWorkerThread(atoi(argv[3]));
 
     auto connector = AsyncConnector::Create();
     connector->startWorkerThread();
@@ -28,21 +27,21 @@ int main(int argc, char **argv)
     {
         try
         {
-            connector->asyncConnect(argv[1], atoi(argv[2]), std::chrono::seconds(10), [server, tmp](TcpSocket::PTR socket) {
+            connector->asyncConnect(argv[1], atoi(argv[2]), std::chrono::seconds(10), [server, tmp](TcpSocket::Ptr socket) {
                 std::cout << "connect success" << std::endl;
-                socket->SocketNodelay();
+                socket->setNodelay();
 
-                auto enterCallback = [tmp](const TCPSession::PTR& session) {
-                    session->setDataCallback([](const TCPSession::PTR& session, const char* buffer, size_t len) {
+                auto enterCallback = [tmp](const TcpConnection::Ptr& session) {
+                    session->setDataCallback([session](const char* buffer, size_t len) {
                         session->send(buffer, len);
                         return len;
                     });
                     session->send(tmp.c_str(), tmp.size());
                 };
 
-                server->addSession(std::move(socket),
-                        AddSessionOption::WithEnterCallback(enterCallback),
-                        AddSessionOption::WithMaxRecvBufferSize(1024*1024));
+                server->addTcpConnection(std::move(socket),
+                                         TcpService::AddSocketOption::WithEnterCallback(enterCallback),
+                                         TcpService::AddSocketOption::WithMaxRecvBufferSize(1024 * 1024));
             }, []() {
                 std::cout << "connect failed" << std::endl;
             });

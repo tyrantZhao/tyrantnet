@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8.9)
 project(tyrantnet)
 
 OPTION(TYRANTNET_BUILD_TYPE_DEBUG "Build tyrantnet in debug mode" ON)
-option(TYRANTNET_BUILD_EXAMPLES "Build tyrantnet examples" OFF)
+option(TYRANTNET_BUILD_EXAMPLES "Build tyrantnet examples" ON)
 option(TYRANTNET_BUILD_TESTINGS "Build tyrantnet testings" OFF)
 
 find_library(LIB_OPENSSL NAMES crypto ssl)

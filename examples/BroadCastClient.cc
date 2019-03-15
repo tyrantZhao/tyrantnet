@@ -1,64 +1,62 @@
-#include <iostream>
-#include <ctime>
-#include <cstdio>
-#include <functional>
+﻿#include <functional>
+#include <time.h>
+#include <stdio.h>
 #include <thread>
+#include <iostream>
 #include <assert.h>
 #include <chrono>
 #include <memory>
 #include <thread>
 #include <atomic>
 
-#include <tyrant/common/packet.h>
-#include <tyrant/timer/timer.h>
+#include <tyrantnet/common/packet.h>
+#include <tyrantnet/timer/Timer.h>
 
-#include <tyrant/net/socketlibfunction.h>
+#include <tyrantnet/net/SocketLibFunction.h>
+#include <tyrantnet/net/EventLoop.h>
+#include <tyrantnet/net/TcpConnection.h>
 
-#include <tyrant/net/eventloop.h>
-#include <tyrant/net/datasocket.h>
-#include <tyrant/timer/timer.h>
+using namespace std;
+using namespace tyrantnet;
+using namespace tyrantnet::common;
+using namespace tyrantnet::net;
 
-using namespace tyrant;
-using namespace tyrant::common;
-using namespace tyrant::net;
-
-std::atomic_llong TotalRecvPacketNum = ATOMIC_VAR_INIT(0);
-std::atomic_llong TotalRecvSize = ATOMIC_VAR_INIT(0);
+atomic_llong    TotalRecvPacketNum    = ATOMIC_VAR_INIT(0);
+atomic_llong    TotalRecvSize         = ATOMIC_VAR_INIT(0);
 
 int main(int argc, char** argv)
 {
     if (argc != 5)
     {
         fprintf(stderr, "Usage: <server ip> <server port> <session num> <packet size>\n");
-        return -1;
+        exit(-1);
     }
 
-    std::string ip = argv[1];
-    int port = atoi(argv[2]);
-    int clientNum = atoi(argv[3]);
-    int packetLen = atoi(argv[4]);
+    std::string ip  = argv[1];
+    int port        = atoi(argv[2]);
+    int clietNum    = atoi(argv[3]);
+    int packetLen   = atoi(argv[4]);
 
     base::InitSocket();
 
     auto clientEventLoop = std::make_shared<EventLoop>();
 
-    for (int i = 0; i < clientNum; i++)
+    for (int i = 0; i < clietNum; i++)
     {
         auto fd = base::Connect(false, ip.c_str(), port);
         base::SocketSetSendSize(fd, 32 * 1024);
         base::SocketSetRecvSize(fd, 32 * 1024);
         base::SocketNodelay(fd);
 
-        DataSocket::PTR datasSocket = new DataSocket(TcpSocket::Create(fd, false), 1024 * 1024);
-        datasSocket->setEnterCallback([packetLen](DataSocket::PTR datasSocket) {
-            static_assert(sizeof(datasSocket) <= sizeof(int64_t), "dataSocket size > int64_t");
+        auto enterCallback = [packetLen](TcpConnection::Ptr datasSocket) {
+            static_assert(sizeof(datasSocket.get()) <= sizeof(int64_t), "");
 
             auto HEAD_LEN = sizeof(uint32_t) + sizeof(uint16_t);
 
             std::shared_ptr<BigPacket> sp = std::make_shared<BigPacket>(1);
-            sp->writeUINT32(HEAD_LEN+sizeof(int64_t) + packetLen);
+            sp->writeUINT32(HEAD_LEN + sizeof(int64_t) + packetLen);
             sp->writeUINT16(1);
-            sp->writeINT64((int64_t)datasSocket);
+            sp->writeINT64((int64_t)datasSocket.get());
             sp->writeBinary(std::string(packetLen, '_'));
 
             for (int i = 0; i < 1; ++i)
@@ -66,7 +64,7 @@ int main(int argc, char** argv)
                 datasSocket->send(sp->getData(), sp->getPos());
             }
 
-            datasSocket->setDataCallback([](DataSocket::PTR datasSocket, const char* buffer, size_t len) {
+            datasSocket->setDataCallback([datasSocket](const char* buffer, size_t len) {
                 const char* parseStr = buffer;
                 int totalProcLen = 0;
                 size_t leftLen = len;
@@ -89,7 +87,7 @@ int main(int argc, char** argv)
                             rp.readUINT16();
                             int64_t addr = rp.readINT64();
 
-                            if (addr == (int64_t)(datasSocket))
+                            if (addr == (int64_t)(datasSocket.get()))
                             {
                                 datasSocket->send(parseStr, packet_len);
                             }
@@ -112,16 +110,15 @@ int main(int argc, char** argv)
                 return totalProcLen;
             });
 
-            datasSocket->setDisConnectCallback([](DataSocket::PTR datasSocket) {
-                delete datasSocket;
+            datasSocket->setDisConnectCallback([](TcpConnection::Ptr datasSocket) {
             });
-        });
-
-        clientEventLoop->pushAsyncProc([clientEventLoop, datasSocket]() {
-            if (!datasSocket->onEnterEventLoop(clientEventLoop))
-            {
-                delete datasSocket;
-            }
+        };
+        auto tcpConnection = TcpConnection::Create(TcpSocket::Create(fd, false),
+                                                   1024 * 1024,
+                                                   enterCallback,
+                                                   clientEventLoop);
+        clientEventLoop->runAsyncFunctor([clientEventLoop, tcpConnection]() {
+            tcpConnection->onEnterEventLoop();
         });
     }
 
@@ -131,13 +128,11 @@ int main(int argc, char** argv)
         clientEventLoop->loop(10);
         if ((std::chrono::steady_clock::now() - now) >= std::chrono::seconds(1))
         {
-            std::cout << "total recv:" << (TotalRecvSize / 1024) / 1024 << " M /s" << " , num " <<  TotalRecvPacketNum << std::endl;
+            cout << "total recv:" << (TotalRecvSize / 1024) / 1024 << " M /s" << " , num " <<  TotalRecvPacketNum << endl;
 
             now = std::chrono::steady_clock::now();
             TotalRecvSize = 0;
             TotalRecvPacketNum = 0;
         }
     }
-
-    return 0;
 }

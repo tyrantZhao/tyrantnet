@@ -1,4 +1,4 @@
-#include <functional>
+﻿#include <functional>
 #include <time.h>
 #include <stdio.h>
 #include <thread>
@@ -8,17 +8,17 @@
 #include <vector>
 #include <atomic>
 
-#include <tyrant/common/packet.h>
+#include <tyrantnet/common/packet.h>
+#include <tyrantnet/net/SocketLibFunction.h>
 
-#include <tyrant/net/socketlibfunction.h>
-#include <tyrant/net/wraptcpservice.h>
-#include <tyrant/net/datasocket.h>
-#include <tyrant/net/listenthread.h>
-#include <tyrant/net/eventloop.h>
+#include <tyrantnet/net/EventLoop.h>
+#include <tyrantnet/net/TcpConnection.h>
+#include <tyrantnet/net/TCPService.h>
+#include <tyrantnet/net/ListenThread.h>
 
-using namespace tyrant;
-using namespace tyrant::common;
-using namespace tyrant::net;
+using namespace tyrantnet;
+using namespace tyrantnet::common;
+using namespace tyrantnet::net;
 
 std::atomic_llong TotalSendLen = ATOMIC_VAR_INIT(0);
 std::atomic_llong TotalRecvLen = ATOMIC_VAR_INIT(0);
@@ -26,19 +26,19 @@ std::atomic_llong TotalRecvLen = ATOMIC_VAR_INIT(0);
 std::atomic_llong  SendPacketNum = ATOMIC_VAR_INIT(0);
 std::atomic_llong  RecvPacketNum = ATOMIC_VAR_INIT(0);
 
-std::vector<TCPSession::PTR> clients;
-WrapTcpService::PTR service;
+std::vector<TcpConnection::Ptr> clients;
+TcpService::Ptr service;
 
-static void addClientID(const TCPSession::PTR& session)
+static void addClientID(const TcpConnection::Ptr& session)
 {
     clients.push_back(session);
 }
 
-static void removeClientID(const TCPSession::PTR& session)
+static void removeClientID(const TcpConnection::Ptr& session)
 {
     for (auto it = clients.begin(); it != clients.end(); ++it)
     {
-        if ((*it)->getSocketID() == session->getSocketID())
+        if (*it == session)
         {
             clients.erase(it);
             break;
@@ -51,7 +51,7 @@ static size_t getClientNum()
     return clients.size();
 }
 
-static void broadCastPacket(const DataSocket::PACKET_PTR& packet)
+static void broadCastPacket(const TcpConnection::PacketPtr& packet)
 {
     auto packetLen = packet->size();
     RecvPacketNum++;
@@ -75,29 +75,29 @@ int main(int argc, char** argv)
     }
 
     int port = atoi(argv[1]);
-    base::InitSocket();
+    tyrantnet::net::base::InitSocket();
 
-    service = std::make_shared<WrapTcpService>();
+    service = TcpService::Create();
     auto mainLoop = std::make_shared<EventLoop>();
-    auto listenThread = ListenThread::Create();
+    auto listenThrean = ListenThread::Create();
 
-    listenThread->startListen(false, "127.0.0.1", port, [mainLoop, listenThread](TcpSocket::PTR socket) {
-        socket->SocketNodelay();
-        socket->SetSendSize(32 * 1024);
-        socket->SetRecvSize(32 * 1024);
+    listenThrean->startListen(false, "127.0.0.1", port, [mainLoop, listenThrean](TcpSocket::Ptr socket) {
+        socket->setNodelay();
+        socket->setSendSize(32 * 1024);
+        socket->setRecvSize(32 * 1024);
 
-        auto enterCallback = [mainLoop](const TCPSession::PTR& session) {
-            mainLoop->pushAsyncProc([session]() {
+        auto enterCallback = [mainLoop](const TcpConnection::Ptr& session) {
+            mainLoop->runAsyncFunctor([session]() {
                 addClientID(session);
             });
 
-            session->setDisConnectCallback([mainLoop](const TCPSession::PTR& session) {
-                mainLoop->pushAsyncProc([session]() {
+            session->setDisConnectCallback([mainLoop](const TcpConnection::Ptr& session) {
+                mainLoop->runAsyncFunctor([session]() {
                     removeClientID(session);
                 });
             });
 
-            session->setDataCallback([mainLoop](const TCPSession::PTR& session, const char* buffer, size_t len) {
+            session->setDataCallback([mainLoop](const char* buffer, size_t len) {
                 const char* parseStr = buffer;
                 size_t totalProcLen = 0;
                 size_t leftLen = len;
@@ -112,8 +112,8 @@ int main(int argc, char** argv)
                         auto packet_len = rp.readUINT32();
                         if (leftLen >= packet_len && packet_len >= HEAD_LEN)
                         {
-                            auto packet = DataSocket::makePacket(parseStr, packet_len);
-                            mainLoop->pushAsyncProc([packet]() {
+                            auto packet = TcpConnection::makePacket(parseStr, packet_len);
+                            mainLoop->runAsyncFunctor([packet]() {
                                 broadCastPacket(packet);
                             });
 
@@ -134,12 +134,12 @@ int main(int argc, char** argv)
                 return totalProcLen;
             });
         };
-        service->addSession(std::move(socket),
-            AddSessionOption::WithEnterCallback(enterCallback),
-            AddSessionOption::WithMaxRecvBufferSize(1024 * 1024));
+        service->addTcpConnection(std::move(socket),
+            tyrantnet::net::TcpService::AddSocketOption::WithEnterCallback(enterCallback),
+                tyrantnet::net::TcpService::AddSocketOption::WithMaxRecvBufferSize(1024 * 1024));
     });
 
-    service->startWorkThread(2);
+    service->startWorkerThread(2);
 
     auto now = std::chrono::steady_clock::now();
     while (true)
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         }
     }
 
-    service->stopWorkThread();
+    service->stopWorkerThread();
 
     return 0;
 }

@@ -1,42 +1,36 @@
-#include <cstdlib>
-#include <iostream>
+﻿#include <iostream>
 #include <mutex>
 #include <atomic>
 
-#include <tyrant/net/socketlibfunction.h>
-#include <tyrant/net/eventloop.h>
-#include <tyrant/net/listenthread.h>
-#include <tyrant/net/wraptcpservice.h>
-#include <tyrant/net/promisereceive.h>
-#include <tyrant/net/http/HttpFormat.h>
+#include <tyrantnet/net/SocketLibFunction.h>
+#include <tyrantnet/net/EventLoop.h>
+#include <tyrantnet/net/TCPService.h>
+#include <tyrantnet/net/PromiseReceive.h>
+#include <tyrantnet/net/http/HttpFormat.h>
+#include <tyrantnet/net/ListenThread.h>
 
-using namespace tyrant::net;
+using namespace tyrantnet;
+using namespace tyrantnet::net;
+using namespace tyrantnet::net::http;
 
 int main(int argc, char **argv)
 {
-    if (4 != argc)
+    if (argc != 3)
     {
-        std::cerr << "Usage: ./promiseReceive_test  <ip_address> <listen_port> <net_thread_num>" << std::endl;
-        std::exit(EXIT_FAILURE);
+        fprintf(stderr, "Usage: <listen port> <net work thread num>\n");
+        exit(-1);
     }
 
-    auto ip_address         = argv[1];
-    auto listen_port        = std::atoi(argv[2]);
-    auto thread_work_num    = std::atoi(argv[3]);
+    auto server = TcpService::Create();
+    auto listenThread = ListenThread::Create();
 
-    auto server = std::make_shared<WrapTcpService>();
-    auto listen_thread = ListenThread::Create();
-
-    listen_thread->startListen(false, ip_address, listen_port, [=](TcpSocket::PTR socket)
-    {
-        socket->SocketNodelay();
-        auto enterCallback = [](const TCPSession::PTR& session) {
-
+    listenThread->startListen(false, "0.0.0.0", atoi(argv[1]), [=](TcpSocket::Ptr socket){
+        socket->setNodelay();
+        auto enterCallback = [](const TcpConnection::Ptr& session) {
             auto promiseReceive = setupPromiseReceive(session);
-            auto contentLength = std::make_shared<std::size_t>();
+            auto contentLength = std::make_shared<size_t>();
 
-            promiseReceive->receiveUntil("\r\n", [](const char* buffer, size_t len)
-            {
+            promiseReceive->receiveUntil("\r\n", [](const char* buffer, size_t len) {
                 auto headline = std::string(buffer, len);
                 std::cout << headline << std::endl;
                 return false;
@@ -50,7 +44,7 @@ int main(int argc, char **argv)
                     if (pos != std::string::npos)
                     {
                         auto lenStr = headerValue.substr(pos+ ContentLenghtFlag.size(), headerValue.size());
-                        *contentLength = static_cast<std::size_t>(std::stoi(lenStr));
+                        *contentLength = std::stoi(lenStr);
                     }
                     return true;
                 }
@@ -68,12 +62,12 @@ int main(int argc, char **argv)
                 return false;
             });
         };
-        server->addSession(std::move(socket),
-            AddSessionOption::WithEnterCallback(enterCallback),
-            AddSessionOption::WithMaxRecvBufferSize(10));
+        server->addTcpConnection(std::move(socket),
+            tyrantnet::net::TcpService::AddSocketOption::WithEnterCallback(enterCallback),
+            tyrantnet::net::TcpService::AddSocketOption::WithMaxRecvBufferSize(10));
     });
 
-    server->startWorkThread(thread_work_num);
+    server->startWorkerThread(atoi(argv[2]));
 
     EventLoop mainLoop;
     while (true)

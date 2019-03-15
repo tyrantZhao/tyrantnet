@@ -5,10 +5,10 @@
 #include <chrono>
 #include <memory>
 
-#include <tyrant/timer/timer.h>
+#include <tyrantnet/timer/Timer.h>
 
 TEST_CASE("Timers are computed", "[timer]") {
-    auto timerMgr = std::make_shared<tyrant::TimerMgr>();
+    auto timerMgr = std::make_shared<tyrantnet::timer::TimerMgr>();
 
     int upvalue = 0;
     auto timer = timerMgr->addTimer(std::chrono::seconds(1), [&upvalue]() {

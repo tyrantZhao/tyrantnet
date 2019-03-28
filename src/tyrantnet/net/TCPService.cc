@@ -120,11 +120,8 @@ namespace tyrantnet { namespace net {
 
     struct tyrantnet::net::TcpService::AddSocketOption::Options
     {
-        Options()
+        Options() : useSSL(false), forceSameThreadLoop(false), maxRecvBufferSize(64)
         {
-            useSSL = false;
-            forceSameThreadLoop = false;
-            maxRecvBufferSize = 0;
         }
 
         std::vector<TcpService::EnterCallback>  enterCallback;

@@ -12,7 +12,6 @@
 #include <tyrantnet/net/SocketLibFunction.h>
 #include <tyrantnet/timer/Timer.h>
 #include <tyrantnet/common/NonCopyable.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/port/Win.h>
 
 namespace tyrantnet { namespace net {
@@ -32,8 +31,8 @@ namespace tyrantnet { namespace net {
         using UserFunctor = std::function<void(void)>;
 
     public:
-        EventLoop() TYRANTNET_NOEXCEPT;
-        virtual ~EventLoop() TYRANTNET_NOEXCEPT;
+        EventLoop() ;
+        virtual ~EventLoop() ;
 
         void                            loop(int64_t milliseconds);
         // loop指定毫秒数,但如果定时器不为空,则loop时间为当前最近定时器的剩余时间和milliseconds的较小值
@@ -58,7 +57,7 @@ namespace tyrantnet { namespace net {
 #ifndef PLATFORM_WINDOWS
         int                             getEpollHandle() const;
 #endif
-        bool                            linkChannel(sock fd, const Channel* ptr) TYRANTNET_NOEXCEPT;
+        bool                            linkChannel(sock fd, const Channel* ptr) ;
         TcpConnectionPtr                getTcpConnection(sock fd);
         void                            addTcpConnection(sock fd, TcpConnectionPtr);
         void                            removeTcpConnection(sock fd);

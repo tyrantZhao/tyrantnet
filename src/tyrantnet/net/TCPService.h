@@ -11,7 +11,6 @@
 #include <tyrantnet/common/NonCopyable.h>
 #include <tyrantnet/common/Typeids.h>
 #include <tyrantnet/net/SSLHelper.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/Socket.h>
 
 namespace tyrantnet { namespace net {
@@ -56,8 +55,8 @@ namespace tyrantnet { namespace net {
         EventLoop::Ptr                      getRandomEventLoop();
 
     protected:
-        TcpService() TYRANTNET_NOEXCEPT;
-        virtual ~TcpService() TYRANTNET_NOEXCEPT;
+        TcpService() ;
+        virtual ~TcpService() ;
 
         bool                                _addTcpConnection(TcpSocket::Ptr socket,
             const std::vector<AddSocketOption::AddSocketOptionFunc>&);

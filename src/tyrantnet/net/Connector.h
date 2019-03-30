@@ -8,7 +8,6 @@
 #include <tyrantnet/common/NonCopyable.h>
 #include <tyrantnet/common/CPP_VERSION.h>
 #include <tyrantnet/net/Any.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/Socket.h>
 
 #ifdef HAVE_LANG_CXX17

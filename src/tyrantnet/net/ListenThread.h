@@ -9,7 +9,6 @@
 #include <tyrantnet/common/NonCopyable.h>
 #include <tyrantnet/common/Typeids.h>
 #include <tyrantnet/net/SocketLibFunction.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/Socket.h>
 
 namespace tyrantnet { namespace net {

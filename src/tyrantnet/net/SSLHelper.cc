@@ -1,11 +1,11 @@
+#include <tyrantnet/net/SSLHelper.h>
+
 #include <unordered_map>
 #include <mutex>
 #include <thread>
 
 #include <tyrantnet/net/Platform.h>
-#include <tyrantnet/net/Noexcept.h>
 
-#include <tyrantnet/net/SSLHelper.h>
                                               
 namespace tyrantnet { namespace net {
 
@@ -15,14 +15,14 @@ namespace tyrantnet { namespace net {
         return std::make_shared<make_shared_enabler>();
     }
 
-    SSLHelper::SSLHelper() TYRANTNET_NOEXCEPT
+    SSLHelper::SSLHelper() 
     {
 #ifdef USE_OPENSSL
         mOpenSSLCTX = nullptr;
 #endif
     }
 
-    SSLHelper::~SSLHelper() TYRANTNET_NOEXCEPT
+    SSLHelper::~SSLHelper() 
     {
 #ifdef USE_OPENSSL
         destroySSL();

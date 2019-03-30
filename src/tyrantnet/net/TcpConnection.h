@@ -10,7 +10,6 @@
 #include <tyrantnet/timer/Timer.h>
 #include <tyrantnet/common/NonCopyable.h>
 #include <tyrantnet/net/Any.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/Socket.h>
 #include <tyrantnet/common/buffer.h>
 
@@ -77,8 +76,8 @@ namespace tyrantnet { namespace net {
         static  TcpConnection::PacketPtr  makePacket(const char* buffer, size_t len);
 
     protected:
-        TcpConnection(TcpSocket::Ptr, size_t maxRecvBufferSize, EnterCallback, EventLoop::Ptr) TYRANTNET_NOEXCEPT;
-        virtual ~TcpConnection() TYRANTNET_NOEXCEPT;
+        TcpConnection(TcpSocket::Ptr, size_t maxRecvBufferSize, EnterCallback, EventLoop::Ptr) ;
+        virtual ~TcpConnection() ;
 
     private:
         void                            growRecvBuffer();

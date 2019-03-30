@@ -65,7 +65,7 @@ namespace tyrantnet { namespace net {
     public:
         using Ptr = std::shared_ptr<ConnectorWorkInfo>;
 
-        ConnectorWorkInfo() TYRANTNET_NOEXCEPT;
+        ConnectorWorkInfo() ;
 
         void                checkConnectStatus(int millsecond);
         bool                isConnectSuccess(sock clientfd, bool willCheckWrite) const;
@@ -109,7 +109,7 @@ namespace tyrantnet { namespace net {
         std::unique_ptr<struct stack_s, StackDeleter> mPollResult;
     };
 
-    ConnectorWorkInfo::ConnectorWorkInfo() TYRANTNET_NOEXCEPT
+    ConnectorWorkInfo::ConnectorWorkInfo() 
     {
         mPoller.reset(ox_poller_new());
         mPollResult.reset(ox_stack_new(1024, sizeof(sock)));

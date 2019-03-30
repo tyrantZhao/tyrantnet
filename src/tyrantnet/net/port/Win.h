@@ -20,7 +20,7 @@ namespace tyrantnet { namespace net { namespace port {
             OVERLAPPED  base;
             const OverlappedType  OP;
 
-            OverlappedExt(OverlappedType op) TYRANTNET_NOEXCEPT : OP(op)
+            OverlappedExt(OverlappedType op)  : OP(op)
             {
                 memset(&base, 0, sizeof(base));
             }

@@ -6,7 +6,6 @@
 #include <vector>
 #include <chrono>
 
-#include <tyrantnet/net/Noexcept.h>
 namespace tyrantnet { namespace timer {
 
     using namespace std::chrono;
@@ -19,7 +18,7 @@ namespace tyrantnet { namespace timer {
         using WeakPtr = std::weak_ptr<Timer>;
         using Callback = std::function<void(void)>;
 
-        Timer(steady_clock::time_point startTime, nanoseconds lastTime, Callback f) TYRANTNET_NOEXCEPT;
+        Timer(steady_clock::time_point startTime, nanoseconds lastTime, Callback f);
 
         const steady_clock::time_point&         getStartTime() const;
         const nanoseconds&                      getLastTime() const;

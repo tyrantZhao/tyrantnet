@@ -12,7 +12,7 @@ namespace tyrantnet { namespace net {
     TcpConnection::TcpConnection(TcpSocket::Ptr socket,
         size_t maxRecvBufferSize,
         EnterCallback enterCallback,
-        EventLoop::Ptr eventLoop) TYRANTNET_NOEXCEPT
+        EventLoop::Ptr eventLoop) 
         :
 #if defined PLATFORM_WINDOWS
         mOvlRecv(port::Win::OverlappedType::OverlappedRecv),
@@ -45,7 +45,7 @@ namespace tyrantnet { namespace net {
         mEnterCallback = std::move(enterCallback);
     }
 
-    TcpConnection::~TcpConnection() TYRANTNET_NOEXCEPT
+    TcpConnection::~TcpConnection() 
     {
 #ifdef USE_OPENSSL
         if (mSSL != nullptr)

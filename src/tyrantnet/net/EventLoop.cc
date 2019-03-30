@@ -15,21 +15,21 @@ namespace tyrantnet { namespace net {
         {
         }
 
-        bool    wakeup() TYRANTNET_NOEXCEPT
+        bool    wakeup() 
         {
             return PostQueuedCompletionStatus(mIOCP, 0, reinterpret_cast<ULONG_PTR>(this), &mWakeupOvl.base);
         }
 
     private:
-        void    canRecv() TYRANTNET_NOEXCEPT override
+        void    canRecv()  override
         {
         }
 
-        void    canSend() TYRANTNET_NOEXCEPT override
+        void    canSend()  override
         {
         }
 
-        void    onClose() TYRANTNET_NOEXCEPT override
+        void    onClose()  override
         {
         }
 
@@ -85,12 +85,12 @@ namespace tyrantnet { namespace net {
 #endif
     EventLoop::EventLoop()
 #ifdef PLATFORM_WINDOWS
-        TYRANTNET_NOEXCEPT
+        
         : 
     mIOCP(CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 1)), 
     mWakeupChannel(std::make_unique<WakeupChannel>(mIOCP))
 #else
-    TYRANTNET_NOEXCEPT
+    
         :
     mEpollFd(epoll_create(1))
 #endif
@@ -119,7 +119,7 @@ namespace tyrantnet { namespace net {
     }
 
 
-    EventLoop::~EventLoop() TYRANTNET_NOEXCEPT
+    EventLoop::~EventLoop() 
     {
 #ifdef PLATFORM_WINDOWS
         CloseHandle(mIOCP);
@@ -327,7 +327,7 @@ namespace tyrantnet { namespace net {
         return false;
     }
 
-    bool EventLoop::linkChannel(sock fd, const Channel* ptr) TYRANTNET_NOEXCEPT
+    bool EventLoop::linkChannel(sock fd, const Channel* ptr) 
     {
 #ifdef PLATFORM_WINDOWS
         return CreateIoCompletionPort((HANDLE)fd, mIOCP, (ULONG_PTR)ptr, 0) != nullptr;

@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include <tyrantnet/net/SocketLibFunction.h>
-#include <tyrantnet/net/Noexcept.h>
 #include <tyrantnet/net/Socket.h>
 #include <tyrantnet/net/SyncConnector.h>
 

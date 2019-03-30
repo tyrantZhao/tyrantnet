@@ -22,11 +22,10 @@ namespace tyrantnet{ namespace timer {
         mActive = false;
     }
 
-    Timer::Timer(steady_clock::time_point startTime, 
+    Timer::Timer(steady_clock::time_point startTime,
         nanoseconds lastTime, 
-        Callback callback) TYRANTNET_NOEXCEPT
-        :
-        mActive(true),
+        Callback callback)
+        : mActive(true),
         mCallback(std::move(callback)),
         mStartTime(startTime),
         mLastTime(lastTime)

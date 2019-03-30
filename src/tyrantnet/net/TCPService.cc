@@ -3,7 +3,6 @@
 
 #include <tyrantnet/net/SocketLibFunction.h>
 #include <tyrantnet/net/EventLoop.h>
-#include <tyrantnet/net/Noexcept.h>
 
 #include <tyrantnet/net/TCPService.h>
 
@@ -35,12 +34,12 @@ namespace tyrantnet { namespace net {
         friend class TcpService;
     };
 
-    TcpService::TcpService() TYRANTNET_NOEXCEPT
+    TcpService::TcpService() 
     {
         mRunIOLoop = std::make_shared<bool>(false);
     }
 
-    TcpService::~TcpService() TYRANTNET_NOEXCEPT
+    TcpService::~TcpService() 
     {
         stopWorkerThread();
     }

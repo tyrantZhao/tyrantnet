@@ -4,7 +4,6 @@
 #include <memory>
 
 #include <tyrantnet/common/NonCopyable.h>
-#include <tyrantnet/net/Noexcept.h>
 
 #ifdef USE_OPENSSL
 
@@ -35,8 +34,8 @@ namespace tyrantnet { namespace net {
         static  Ptr                         Create();
 
     private:
-        SSLHelper() TYRANTNET_NOEXCEPT;
-        virtual ~SSLHelper() TYRANTNET_NOEXCEPT;
+        SSLHelper() ;
+        virtual ~SSLHelper() ;
 
     private:
 #ifdef USE_OPENSSL

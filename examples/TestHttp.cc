@@ -20,41 +20,6 @@ int main(int argc, char **argv)
     auto service = TcpService::Create();
     service->startWorkerThread(2);
 
-    auto listenThread = ListenThread::Create();
-    listenThread->startListen(false, "127.0.0.1", 8080, [service, body](TcpSocket::Ptr socket) {
-        auto enterCallback = [body](const TcpConnection::Ptr& session) {
-            HttpService::setup(session, [body](const HttpSession::Ptr& httpSession) {
-                httpSession->setHttpCallback([body](const HTTPParser& httpParser,
-                    const HttpSession::Ptr& session) {
-                    HttpResponse response;
-                    response.setBody(body);
-                    std::string result = response.getResult();
-                    session->send(result.c_str(), result.size(), [session]() {
-                        session->postShutdown();
-                    });
-                });
-
-                httpSession->setWSCallback([](const HttpSession::Ptr& httpSession,
-                    WebSocketFormat::WebSocketFrameType opcode,
-                    const std::string& payload) {
-                    // ping pong
-                    auto frame = std::make_shared<std::string>();
-                    WebSocketFormat::wsFrameBuild(payload.c_str(),
-                        payload.size(),
-                        *frame,
-                        WebSocketFormat::WebSocketFrameType::TEXT_FRAME,
-                        true,
-                        true);
-                    httpSession->send(frame);
-                });
-            });
-        };
-        service->addTcpConnection(std::move(socket),
-            tyrantnet::net::TcpService::AddSocketOption::WithEnterCallback(enterCallback),
-            tyrantnet::net::TcpService::AddSocketOption::WithMaxRecvBufferSize(10));
-    });
-
-
     sock fd = tyrantnet::net::base::Connect(false, "191.236.16.125", 80);
     if (fd != INVALID_SOCKET)
     {

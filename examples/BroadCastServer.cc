@@ -74,14 +74,9 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    int port = atoi(argv[1]);
-    tyrantnet::net::base::InitSocket();
-
     service = TcpService::Create();
     auto mainLoop = std::make_shared<EventLoop>();
-    auto listenThrean = ListenThread::Create();
-
-    listenThrean->startListen(false, "127.0.0.1", port, [mainLoop, listenThrean](TcpSocket::Ptr socket) {
+    auto listenThread = ListenThread::Create(false, "127.0.0.1", atoi(argv[1]), [mainLoop](TcpSocket::Ptr socket) {
         socket->setNodelay();
         socket->setSendSize(32 * 1024);
         socket->setRecvSize(32 * 1024);
@@ -138,6 +133,8 @@ int main(int argc, char** argv)
             tyrantnet::net::TcpService::AddSocketOption::WithEnterCallback(enterCallback),
                 tyrantnet::net::TcpService::AddSocketOption::WithMaxRecvBufferSize(1024 * 1024));
     });
+
+    listenThread->startListen();
 
     service->startWorkerThread(2);
 

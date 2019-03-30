@@ -10,20 +10,34 @@
 
 namespace tyrantnet { namespace net {
 
-    ListenThread::Ptr ListenThread::Create()
+    ListenThread::Ptr ListenThread::Create(bool isIPV6, const std::string& ip, const int port, const AcceptCallback& callback)
     {
-        struct make_shared_enabler : public ListenThread {};
-        return std::make_shared<make_shared_enabler>();
+        struct make_shared_enabler : public ListenThread
+        {
+            make_shared_enabler(bool isIPV6, const std::string& ip, const int port, const AcceptCallback& callback)
+                : ListenThread(isIPV6, ip, port, callback)
+            {
+            }
+        };
+        return std::make_shared<make_shared_enabler>(isIPV6, ip, port, callback);
     }
 
-    ListenThread::ListenThread() TYRANTNET_NOEXCEPT
+    ListenThread::ListenThread(bool isIPV6, const std::string& ip, const int port, const AcceptCallback& callback)
+        : mIsIPV6(isIPV6),
+        mIP(ip),
+        mPort(port),
+        mCallback(callback),
+        mRunListen(std::make_shared<bool>(false)),
+        mListenThread(nullptr)
     {
-        mIsIPV6 = false;
-        mPort = 0;
-        mRunListen = std::make_shared<bool>(false);
+
+        if (callback == nullptr)
+        {
+            throw std::runtime_error("accept callback is nullptr");
+        }
     }
 
-    ListenThread::~ListenThread() TYRANTNET_NOEXCEPT
+    ListenThread::~ListenThread()
     {
         stopListen();
     }
@@ -51,10 +65,7 @@ namespace tyrantnet { namespace net {
         return nullptr;
     }
 
-    void ListenThread::startListen(bool isIPV6,
-        const std::string& ip,
-        int port,
-        AccepCallback callback)
+    void ListenThread::startListen()
     {
         std::lock_guard<std::mutex> lck(mListenThreadGuard);
 
@@ -62,24 +73,17 @@ namespace tyrantnet { namespace net {
         {
             return;
         }
-        if (callback == nullptr)
-        {
-            throw std::runtime_error("accept callback is nullptr");
-        }
-
-        const sock fd = tyrantnet::net::base::Listen(isIPV6, ip.c_str(), port, 512);
+        const sock fd = tyrantnet::net::base::Listen(mIsIPV6, mIP.c_str(), mPort, 512);
         if (fd == INVALID_SOCKET)
         {
             throw std::runtime_error(std::string("listen error of:") + std::to_string(sErrno));;
         }
 
-        mIsIPV6 = isIPV6;
-        mRunListen = std::make_shared<bool>(true);
-        mIP = ip;
-        mPort = port;
+        mRunListen			= std::make_shared<bool>(true);
 
-        auto listenSocket = std::shared_ptr<ListenSocket>(ListenSocket::Create(fd));
-        auto isRunListen = mRunListen;
+        auto listenSocket	= std::shared_ptr<ListenSocket>(ListenSocket::Create(fd));
+        auto isRunListen	= mRunListen;
+        auto callback		= mCallback;
 
         mListenThread = std::make_shared<std::thread>([isRunListen, listenSocket, callback]() mutable {
             while (*isRunListen)

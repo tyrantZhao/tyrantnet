@@ -25,9 +25,7 @@ int main(int argc, char **argv)
     }
 
     auto server = TcpService::Create();
-    auto listenThread = ListenThread::Create();
-
-    listenThread->startListen(false, "127.0.0.1", atoi(argv[1]), [=](TcpSocket::Ptr socket){
+    auto listenThread = ListenThread::Create(false, "127.0.0.1", atoi(argv[1]), [=](TcpSocket::Ptr socket){
         socket->setNodelay();
 
         auto enterCallback = [](const TcpConnection::Ptr& session) {
@@ -49,6 +47,8 @@ int main(int argc, char **argv)
                                  TcpService::AddSocketOption::WithEnterCallback(enterCallback),
                                  TcpService::AddSocketOption::WithMaxRecvBufferSize(1024 * 1024));
     });
+
+    listenThread->startListen();
 
     server->startWorkerThread(atoi(argv[2]));
 

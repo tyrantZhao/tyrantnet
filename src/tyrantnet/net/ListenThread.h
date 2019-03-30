@@ -18,23 +18,24 @@ namespace tyrantnet { namespace net {
     {
     public:
         using Ptr = std::shared_ptr<ListenThread>;
-        using AccepCallback = std::function<void(TcpSocket::Ptr)>;
+        using AcceptCallback = std::function<void(TcpSocket::Ptr)>;
 
-        void                                startListen(bool isIPV6,
+        static  Ptr                         Create(bool isIPV6,
                                                 const std::string& ip,
-                                                int port,
-                                                AccepCallback callback);
+                                                const int port,
+                                                const AcceptCallback& callback);
+        void                                startListen();
         void                                stopListen();
-        static  Ptr                         Create();
 
     private:
-        ListenThread() TYRANTNET_NOEXCEPT;
-        virtual ~ListenThread() TYRANTNET_NOEXCEPT;
+        ListenThread(bool isIPV6, const std::string& ip, const int port, const AcceptCallback& callback);
+        virtual ~ListenThread();
 
     private:
         bool                                mIsIPV6;
         std::string                         mIP;
         int                                 mPort;
+        AcceptCallback                      mCallback;
         std::shared_ptr<bool>               mRunListen;
         std::shared_ptr<std::thread>        mListenThread;
         std::mutex                          mListenThreadGuard;

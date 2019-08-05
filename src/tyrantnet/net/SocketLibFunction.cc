@@ -40,7 +40,7 @@ namespace tyrantnet { namespace net { namespace base {
     int SocketNodelay(sock fd)
     {
         const int flag = 1;
-        return setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
+        return setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, static_cast<const void*>(&flag), static_cast<socklen_t>(sizeof(flag)));
     }
 
     bool SocketBlock(sock fd)
@@ -71,12 +71,12 @@ namespace tyrantnet { namespace net { namespace base {
 
     int SocketSetSendSize(sock fd, int sd_size)
     {
-        return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (const char*)&sd_size, sizeof(sd_size));
+        return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, static_cast<const void*>(&sd_size), static_cast<socklen_t>(sizeof(sd_size)));
     }
 
     int SocketSetRecvSize(sock fd, int rd_size)
     {
-        return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (const char*)&rd_size, sizeof(rd_size));
+        return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, static_cast<const void*>(&rd_size), static_cast<socklen_t>(sizeof(rd_size)));
     }
 
     // TODO::Connect是否直接返回TcpSocket::Ptr
@@ -84,8 +84,8 @@ namespace tyrantnet { namespace net { namespace base {
     {
         InitSocket();
 
-        struct sockaddr_in ip4Addr = { 0 };
-        struct sockaddr_in6 ip6Addr = { 0 };
+        struct sockaddr_in ip4Addr = sockaddr_in();
+        struct sockaddr_in6 ip6Addr = sockaddr_in6();
         struct sockaddr_in* paddr = &ip4Addr;
         int addrLen = sizeof(ip4Addr);
 
@@ -101,7 +101,6 @@ namespace tyrantnet { namespace net { namespace base {
         bool ptonResult = false;
         if (isIPV6)
         {
-            memset(&ip6Addr, 0, sizeof(ip6Addr));
             ip6Addr.sin6_family = AF_INET6;
             ip6Addr.sin6_port = htons(port);
             ptonResult = inet_pton(AF_INET6, server_ip.c_str(), &ip6Addr.sin6_addr) > 0;
@@ -139,8 +138,8 @@ namespace tyrantnet { namespace net { namespace base {
     {
         InitSocket();
 
-        struct sockaddr_in ip4Addr = { 0 };
-        struct sockaddr_in6 ip6Addr = { 0 };
+        struct sockaddr_in ip4Addr = sockaddr_in();
+        struct sockaddr_in6 ip6Addr = sockaddr_in6();
         struct sockaddr_in* paddr = &ip4Addr;
         int addrLen = sizeof(ip4Addr);
 
@@ -155,7 +154,6 @@ namespace tyrantnet { namespace net { namespace base {
         bool ptonResult = false;
         if (isIPV6)
         {
-            memset(&ip6Addr, 0, sizeof(ip6Addr));
             ip6Addr.sin6_family = AF_INET6;
             ip6Addr.sin6_port = htons(port);
             ptonResult = inet_pton(AF_INET6, ip, &ip6Addr.sin6_addr) > 0;

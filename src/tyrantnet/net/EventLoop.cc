@@ -135,17 +135,17 @@ namespace tyrantnet { namespace net {
         auto timer = std::make_shared<tyrantnet::timer::Timer>(
             steady_clock::now(),
             nanoseconds(timeout),
-            callback);
+            std::move(callback));
 
         if (isInLoopThread())
         {
-            mTimer->addTimer(timeout, timer);
+            mTimer->addTimer(timer);
         }
         else
         {
             auto timerMgr = mTimer;
             runAsyncFunctor([timerMgr, timeout, timer]() {
-                timerMgr->addTimer(timeout, timer);
+                timerMgr->addTimer(timer);
             });
         }
 

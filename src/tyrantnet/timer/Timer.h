@@ -5,10 +5,10 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <mutex>
 
 namespace tyrantnet { namespace timer {
 
-    using namespace std::chrono;
     class TimerMgr;
 
     class Timer final
@@ -18,22 +18,22 @@ namespace tyrantnet { namespace timer {
         using WeakPtr = std::weak_ptr<Timer>;
         using Callback = std::function<void(void)>;
 
-        Timer(steady_clock::time_point startTime, nanoseconds lastTime, Callback f);
+        Timer(std::chrono::steady_clock::time_point startTime, std::chrono::nanoseconds lastTime, Callback&& f);
 
-        const steady_clock::time_point&         getStartTime() const;
-        const nanoseconds&                      getLastTime() const;
+        const std::chrono::steady_clock::time_point&    getStartTime() const;
+        const std::chrono::nanoseconds&                 getLastTime() const;
 
-        nanoseconds                             getLeftTime() const;
-        void                                    cancel();
-
-    private:
-        void operator()                         ();
+        std::chrono::nanoseconds                        getLeftTime() const;
+        void                                            cancel();
 
     private:
-        bool                                    mActive;
-        Callback                                mCallback;
-        const steady_clock::time_point          mStartTime;
-        nanoseconds                             mLastTime;
+        void operator()                                 ();
+
+    private:
+        std::once_flag                                  mExecuteOnceFlag;
+        Callback                                        mCallback;
+        const std::chrono::steady_clock::time_point     mStartTime;
+        std::chrono::nanoseconds                        mLastTime;
 
         friend class TimerMgr;
     };
@@ -44,18 +44,18 @@ namespace tyrantnet { namespace timer {
         using Ptr = std::shared_ptr<TimerMgr>;
 
         template<typename F, typename ...TArgs>
-        Timer::WeakPtr                          addTimer(nanoseconds timeout, F callback, TArgs&& ...args)
+        Timer::WeakPtr                          addTimer(std::chrono::nanoseconds timeout, F&& callback, TArgs&& ...args)
         {
             auto timer = std::make_shared<Timer>(
-                steady_clock::now(), 
-                nanoseconds(timeout),
-                std::bind(std::move(callback), std::forward<TArgs>(args)...));
+                std::chrono::steady_clock::now(),
+                std::chrono::nanoseconds(timeout),
+                std::bind(std::forward<F>(callback), std::forward<TArgs>(args)...));
             mTimers.push(timer);
 
             return timer;
         }
 
-        void                                    addTimer(nanoseconds timeout, Timer::Ptr timer)
+        void                                    addTimer(const Timer::Ptr& timer)
         {
             mTimers.push(timer);
         }
@@ -63,7 +63,7 @@ namespace tyrantnet { namespace timer {
         void                                    schedule();
         bool                                    isEmpty() const;
         // if timer empty, return zero
-        nanoseconds                             nearLeftTime() const;
+        std::chrono::nanoseconds                nearLeftTime() const;
         void                                    clear();
 
     private:

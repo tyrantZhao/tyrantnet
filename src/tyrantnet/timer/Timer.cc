@@ -1,32 +1,34 @@
 #include <tyrantnet/timer/Timer.h>
 
-namespace tyrantnet{ namespace timer {
+namespace tyrantnet { namespace timer {
 
-    const steady_clock::time_point& Timer::getStartTime() const
+    const std::chrono::steady_clock::time_point& Timer::getStartTime() const
     {
         return mStartTime;
     }
 
-    const nanoseconds& Timer::getLastTime() const
+    const std::chrono::nanoseconds& Timer::getLastTime() const
     {
         return mLastTime;
     }
 
-    nanoseconds Timer::getLeftTime() const
+    std::chrono::nanoseconds Timer::getLeftTime() const
     {
-        return getLastTime() - (steady_clock::now() - getStartTime());
+        return getLastTime() - (std::chrono::steady_clock::now() - getStartTime());
     }
 
     void Timer::cancel()
     {
-        mActive = false;
+        std::call_once(mExecuteOnceFlag, [this]() {
+                mCallback = nullptr;
+            });
     }
 
-    Timer::Timer(steady_clock::time_point startTime,
-        nanoseconds lastTime, 
-        Callback callback)
-        : mActive(true),
-        mCallback(std::move(callback)),
+    Timer::Timer(std::chrono::steady_clock::time_point startTime,
+        std::chrono::nanoseconds lastTime,
+        Callback&& callback)
+        :
+        mCallback(std::forward<Callback>(callback)),
         mStartTime(startTime),
         mLastTime(lastTime)
     {
@@ -34,10 +36,10 @@ namespace tyrantnet{ namespace timer {
 
     void Timer::operator() ()
     {
-        if (mActive)
-        {
-            mCallback();
-        }
+        std::call_once(mExecuteOnceFlag, [this]() {
+                mCallback();
+                mCallback = nullptr;
+            });
     }
 
     void TimerMgr::schedule()
@@ -45,7 +47,7 @@ namespace tyrantnet{ namespace timer {
         while (!mTimers.empty())
         {
             auto tmp = mTimers.top();
-            if (tmp->getLeftTime() > nanoseconds::zero())
+            if (tmp->getLeftTime() > std::chrono::nanoseconds::zero())
             {
                 break;
             }
@@ -60,17 +62,17 @@ namespace tyrantnet{ namespace timer {
         return mTimers.empty();
     }
 
-    nanoseconds TimerMgr::nearLeftTime() const
+    std::chrono::nanoseconds TimerMgr::nearLeftTime() const
     {
         if (mTimers.empty())
         {
-            return nanoseconds::zero();
+            return std::chrono::nanoseconds::zero();
         }
 
         auto result = mTimers.top()->getLeftTime();
-        if (result < nanoseconds::zero())
+        if (result < std::chrono::nanoseconds::zero())
         {
-            return nanoseconds::zero();
+            return std::chrono::nanoseconds::zero();
         }
 
         return result;

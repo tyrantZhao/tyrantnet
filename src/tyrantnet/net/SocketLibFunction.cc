@@ -223,16 +223,16 @@ namespace tyrantnet { namespace net { namespace base {
     std::string GetIPOfSocket(sock fd)
     {
 #if defined PLATFORM_WINDOWS
-        struct sockaddr name = { 0 };
+        struct sockaddr name = sockaddr();
         int namelen = sizeof(name);
-        if (getpeername(fd, (struct sockaddr*)&name, &namelen) == 0)
+        if (getpeername(fd, static_cast<struct sockaddr*>(&name), &namelen) == 0)
         {
             return getIPString(&name);
         }
 #else
         struct sockaddr_in name;
         socklen_t namelen = sizeof(name);
-        if (getpeername(fd, (struct sockaddr*)&name, &namelen) == 0)
+        if (getpeername(fd, (struct sockaddr*)(&name), static_cast<socklen_t*>(&namelen)) == 0)
         {
             return getIPString((const struct sockaddr*)&name);
         }
@@ -253,7 +253,6 @@ namespace tyrantnet { namespace net { namespace base {
         return transnum;
     }
 
-    // TODO::Accept是否直接返回TcpSocket::Ptr
     sock Accept(sock listenSocket, struct sockaddr* addr, socklen_t* addrLen)
     {
         return accept(listenSocket, addr, addrLen);
@@ -266,8 +265,7 @@ namespace tyrantnet { namespace net { namespace base {
 
     static struct sockaddr_in6 getLocalAddr(sock sockfd)
     {
-        struct sockaddr_in6 localaddr;
-        memset(&localaddr, 0, sizeof localaddr);
+        struct sockaddr_in6 localaddr = sockaddr_in6();
         socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
         if (::getsockname(sockfd, (struct sockaddr*)(&localaddr), &addrlen) < 0)
         {
@@ -278,8 +276,7 @@ namespace tyrantnet { namespace net { namespace base {
 
     static struct sockaddr_in6 getPeerAddr(sock sockfd)
     {
-        struct sockaddr_in6 peeraddr;
-        memset(&peeraddr, 0, sizeof peeraddr);
+        struct sockaddr_in6 peeraddr = sockaddr_in6();
         socklen_t addrlen = static_cast<socklen_t>(sizeof peeraddr);
         if (::getpeername(sockfd, (struct sockaddr*)(&peeraddr), &addrlen) < 0)
         {

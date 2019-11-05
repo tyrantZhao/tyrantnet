@@ -59,10 +59,6 @@ namespace tyrantnet { namespace net {
             mSSLCtx = nullptr;
         }
 #endif
-
-        // 如果构造TcpConnection发生异常则mSocket也可能为nullptr
-        assert(mSocket != nullptr);
-
         if (mTimer.lock())
         {
             mTimer.lock()->cancel();
@@ -144,21 +140,10 @@ namespace tyrantnet { namespace net {
         auto callbackCapture = callback;
         auto sharedThis = shared_from_this();
         mEventLoop->runAsyncFunctor([sharedThis, packetCapture, callbackCapture]() mutable {
-            const auto len = packetCapture->size();
+        	const auto len = packetCapture->size();
             sharedThis->mSendList.push_back({ std::move(packetCapture), len, std::move(callbackCapture) });
             sharedThis->runAfterFlush();
         });
-    }
-
-    void TcpConnection::sendInLoop(const PacketPtr& packet, const PacketSendedCallback& callback)
-    {
-        assert(mEventLoop->isInLoopThread());
-        if (mEventLoop->isInLoopThread())
-        {
-            const auto len = packet->size();
-            mSendList.push_back({ packet, len, callback });
-            runAfterFlush();
-        }
     }
 
     void TcpConnection::canRecv()

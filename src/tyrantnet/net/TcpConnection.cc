@@ -616,24 +616,26 @@ namespace tyrantnet { namespace net {
         auto callBack = mDisConnectCallback;
         auto sharedThis = shared_from_this();
         auto eventLoop = mEventLoop;
-        auto fd = mSocket->getFD();
+		std::shared_ptr<TcpSocket> socket = std::move(const_cast<TcpSocket::Ptr&&>(mSocket));
         mEventLoop->runFunctorAfterLoop([callBack,
             sharedThis,
             eventLoop,
-            fd]() {
+            socket]() {
             if (callBack != nullptr)
             {
                 callBack(sharedThis);
             }
-            auto tmp = eventLoop->getTcpConnection(fd);
+            auto tmp = eventLoop->getTcpConnection(socket->getFD());
             assert(tmp == sharedThis);
             if (tmp == sharedThis)
             {
-                eventLoop->removeTcpConnection(fd);
+                eventLoop->removeTcpConnection(socket->getFD());
             }
         });
         mDisConnectCallback = nullptr;
         mDataCallback = nullptr;
+        mRecvBuffer = nullptr;
+        mCanWrite = false;
     }
 
     bool TcpConnection::checkRead()
